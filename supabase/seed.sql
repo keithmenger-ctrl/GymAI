@@ -165,11 +165,12 @@ begin
   -- ------------------------------------------------ guardians (first 6 get logins)
   for i in 1..26 loop
     v_uid := null;
-    if i <= 6 then v_uid := pg_temp.seed_user('parent' || i || '@vegaselite.test', 'Parent ' || last_names[i]); end if;
+    v_first := (array['Maria','David','Jennifer','Chris','Ashley','Robert','Michelle','Daniel','Amanda','Kevin'])[1 + (i % 10)]
+               || ' ' || last_names[i];
+    if i <= 6 then v_uid := pg_temp.seed_user('parent' || i || '@vegaselite.test', v_first); end if;
     if v_uid is not null then insert into user_roles (user_id, organization_id, role) values (v_uid, v_org, 'parent'); end if;
     insert into guardians (organization_id, profile_id, name, email, phone)
-    values (v_org, v_uid,
-            (array['Maria','David','Jennifer','Chris','Ashley','Robert','Michelle','Daniel','Amanda','Kevin'])[1 + (i % 10)] || ' ' || last_names[i],
+    values (v_org, v_uid, v_first,
             case when i <= 6 then 'parent' || i || '@vegaselite.test' else lower(last_names[i]) || '.family@example.com' end,
             '702-555-' || lpad((1000 + i * 37)::text, 4, '0'))
     returning id into v_gid;
@@ -255,13 +256,12 @@ begin
                coach_profiles[tpl.p], v_starts
         from (select sa2.athlete_id, array_position(athlete_ids, sa2.athlete_id) as idx
               from session_athletes sa2 where sa2.session_id = v_sess) sa;
-        -- occasional coach note
-        if random() < 0.35 then
-          insert into coach_notes (organization_id, athlete_id, session_id, author_id, body, shareable, created_at)
-          select v_org, sa.athlete_id, v_sess, coach_profiles[tpl.p],
-                 note_bodies[1 + floor(random() * 10)::int], random() < 0.6, v_ends
-          from session_athletes sa where sa.session_id = v_sess order by random() limit 1;
-        end if;
+        -- coach notes: roughly one athlete in eight gets a note each session
+        insert into coach_notes (organization_id, athlete_id, session_id, author_id, body, shareable, created_at)
+        select v_org, sa.athlete_id, v_sess, coach_profiles[tpl.p], note_bodies[k2], shareable_flags[k2], v_ends
+          from (select sa2.athlete_id, 1 + floor(random() * 10)::int as k2, random() as r
+                  from session_athletes sa2 where sa2.session_id = v_sess) sa
+         where sa.r < 0.13;
         if random() < 0.25 then
           insert into coach_notes (organization_id, athlete_id, session_id, author_id, body, shareable, created_at)
           values (v_org, null, v_sess, coach_profiles[tpl.p], 'Good energy from the group. Focus was ' ||

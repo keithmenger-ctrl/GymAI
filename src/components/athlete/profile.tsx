@@ -2,6 +2,10 @@ import Link from 'next/link'
 import { Badge, Card, buttonClass } from '@/components/ui'
 import { StatusBadge } from './status-badge'
 import { InviteParent } from './invite-parent'
+import { ActionForm } from '@/components/form'
+import { Button, Input } from '@/components/ui'
+import { addMilestone, changeLevel } from '@/lib/actions/progress'
+import { withUser } from '@/lib/db'
 import { fmtDate, fmtShortDate, initials, num, relativeDays } from '@/lib/format'
 import type { Session } from '@/lib/auth'
 import {
@@ -43,6 +47,17 @@ export async function AthleteProfile({
     currentFocus(session, id),
   ])
   if (!a) return null
+  const nextLevel =
+    viewer === 'admin' && a.current_program_id
+      ? (await withUser(session.userId, (q) =>
+          q<{ id: string; name: string }>(
+            `select l.id, l.name from program_levels l
+              where l.program_id = $1
+                and l.sort_order > coalesce((select sort_order from program_levels where id = $2), -1)
+              order by l.sort_order limit 1`,
+            [a.current_program_id, a.current_level_id],
+          )))[0]
+      : undefined
   const pct = att.total ? Math.round((att.attended / att.total) * 100) : 0
   const highlights = series.map((s) => ({ s, imp: improvement(s) })).filter((x) => x.imp).slice(0, 4)
 
@@ -61,7 +76,14 @@ export async function AthleteProfile({
           </div>
           <StatusBadge status={a.status} />
         </div>
-        {editHref && <Link href={editHref} className={buttonClass('secondary')}>Edit athlete</Link>}
+        <div className="flex gap-2">
+          {nextLevel && (
+            <form action={changeLevel.bind(null, a.id, nextLevel.id)}>
+              <Button>Advance to {nextLevel.name}</Button>
+            </form>
+          )}
+          {editHref && <Link href={editHref} className={buttonClass('secondary')}>Edit athlete</Link>}
+        </div>
       </div>
 
       {/* Progress snapshot */}
@@ -112,6 +134,12 @@ export async function AthleteProfile({
       <div className="grid gap-6 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-6">
           <Section title="Progress timeline">
+            {viewer !== 'parent' && (
+              <ActionForm action={addMilestone.bind(null, a.id)} submit="Add milestone" variant="secondary" size="sm"
+                className="mb-6 flex flex-wrap items-start gap-2 space-y-0" resetOnSuccess>
+                <Input name="title" placeholder="e.g. First sub-1.8s 10-yard sprint" className="max-w-sm flex-1" aria-label="Milestone" required />
+              </ActionForm>
+            )}
             {timeline.length === 0 ? (
               <p className="text-sm text-muted">No activity yet.</p>
             ) : (

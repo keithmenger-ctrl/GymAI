@@ -33,7 +33,7 @@ Single Next.js (App Router, TypeScript, Tailwind) monolith on Supabase (Postgres
 Migrations live in `supabase/migrations`:
 `organizations, profiles, user_roles, locations, sports, coaches, guardians, athletes, athlete_guardians, programs, program_levels, curriculum_items, sessions, session_athletes, attendance, coach_notes, assessment_types, assessment_results, athlete_progress_events, membership_plans, memberships, payments, progress_reports`.
 
-Seed data (`supabase/seed.sql`): "Vegas Elite Performance", 3 programs × 3 levels, 36 curriculum items, 3 coaches, 30 athletes, 26 guardians, 110 sessions (8 weeks back through next week), attendance, notes, ~400 assessment results, memberships and payments. Demo logins (password `academyos-demo`): `owner@`, `keith@`, `mike@`, `sarah@`, `parent1@`…`parent6@` `vegaselite.test`.
+Seed data (`supabase/seed.sql`): "Vegas Elite Performance", 3 programs × 3 levels, 36 curriculum items, 3 coaches, 30 athletes, 26 guardians, ~140 sessions (8 weeks back through next week, pattern anchored to *today* so every coach has sessions on demo day), attendance, notes, ~400 assessment results, memberships and payments. Demo logins (password `academyos-demo`): `owner@`, `keith@`, `mike@`, `sarah@`, `parent1@`…`parent6@` `vegaselite.test`.
 
 ## Testing the database locally
 Needs a local Postgres 16 (no Supabase required; an auth stub stands in for Supabase's `auth` schema):
@@ -49,8 +49,8 @@ su postgres -c "psql -q academyos_test -f supabase/tests/rls.sql"   # 49 tenant/
 - [x] 2. Auth, org signup, role routing, app shells
 - [x] 3. Athletes (list/search/filter, create/edit, full profile incl. attendance, assessment history, notes, timeline, parent invite links)
 - [x] 4. Programs / levels / curriculum (create/edit/archive programs, levels with capacity, weekly curriculum with drills, cues, objectives, video link)
-- [ ] 5. Sessions + attendance
-- [ ] 6. Coach Today
+- [x] 5. Sessions + attendance (week schedule, create with curriculum week → focus/plan, weekly repeat, auto-enroll up to capacity, enroll/remove, coaches page with app-access links)
+- [x] 6. Coach Today (own sessions today, session plan + focus + cues, one-tap attendance with optimistic saves, mark rest present, athlete + session notes)
 - [ ] 7. Assessments
 - [ ] 8. Athlete progress
 - [ ] 9. Parent progress reports
@@ -66,4 +66,4 @@ Supabase Auth handles identity (`@supabase/ssr` cookies, verified with `auth.get
 ## Local development
 Against a real Supabase project: copy `.env.example` to `.env.local`, fill it in, run the SQL in `supabase/migrations` then `supabase/seed.sql` (SQL editor or `supabase db push`), `npm install && npm run dev`.
 
-Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`, `node scripts/e2e/phase4.mjs`.
+Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`, `node scripts/e2e/phase4.mjs`, `node scripts/e2e/phase5.mjs`.

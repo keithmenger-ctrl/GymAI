@@ -22,9 +22,10 @@ insert into auth.users (id, email) values (gen_random_uuid(), 'owner@abcbaseball
 do $$
 declare
   a_org uuid; b_org uuid; a_prog uuid; n bigint;
-  s_id uuid; ath_id uuid; parent_ath uuid; other_ath uuid; b_prog uuid; a_level uuid;
+  s_id uuid; ath_id uuid; parent_ath uuid; other_ath uuid; b_prog uuid; a_level uuid; total_sessions bigint;
 begin
   select id into a_org from organizations where name = 'Vegas Elite Performance';
+  select count(*) into total_sessions from sessions;
   select id into a_prog from programs where organization_id = a_org order by name limit 1;
   select id into a_level from program_levels where program_id = a_prog limit 1;
 
@@ -136,7 +137,7 @@ begin
   select a.id into parent_ath from athletes a;
   perform t.check('parent sees exactly their own athlete', (select count(*) from athletes) = 1);
   perform t.check('parent sees only own athlete sessions',
-    (select count(*) from sessions) > 0 and (select count(*) from sessions) < 110);
+    (select count(*) from sessions) > 0 and (select count(*) from sessions) < total_sessions);
   perform t.check('parent sees own athlete attendance',
     (select count(*) from attendance where athlete_id <> parent_ath) = 0);
   perform t.check('parent sees no unshareable notes', (select count(*) from coach_notes where not shareable) = 0);

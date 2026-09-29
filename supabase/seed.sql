@@ -27,8 +27,7 @@ end $$;
 do $$
 declare
   v_org uuid; v_loc uuid; v_owner uuid;
-  v_today date := current_date;
-  v_monday date := date_trunc('week', current_date)::date;
+  v_today date := (now() at time zone 'America/Los_Angeles')::date; -- facility-local today
   v_now timestamptz := now();
   -- ids
   sport_ids jsonb := '{}'; coach_ids uuid[]; coach_profiles uuid[];
@@ -36,7 +35,7 @@ declare
   guardian_ids uuid[]; athlete_ids uuid[];
   at_ids uuid[]; -- assessment type ids
   plan_ids uuid[];
-  r record; s record; i int; j int; k int; w int;
+  r record; s record; i int; j int; k int; w int; d int;
   v_sess uuid; v_item uuid; v_pid uuid; v_uid uuid; v_gid uuid; v_aid uuid;
   v_starts timestamptz; v_ends timestamptz; v_week int; v_plan text; v_drills jsonb;
   v_status text; v_x numeric; v_base numeric; v_when date[]; v_val numeric;
@@ -217,19 +216,22 @@ begin
   end loop;
 
   -- ------------------------------------------------ sessions: 8 weeks back through next week
-  for w in -8..1 loop
+  -- The pattern repeats every 7 days *relative to today*, so every coach always has sessions today
+  -- (whatever weekday the demo runs on) and this week's sessions follow curriculum week 1.
+  for d in -56..7 loop
     for tpl in select * from (values
-        (1,1,0,15,0),(1,1,2,15,0),(1,2,0,16,0),(1,2,2,16,0),(1,3,4,15,0),
-        (2,1,1,17,0),(2,1,3,17,0),(2,2,1,18,0),(2,2,3,18,0),
-        (3,1,1,15,30),(3,1,5,9,0)) t(p,l,dow,h,m) loop
-      v_starts := ((v_monday + w * 7 + tpl.dow)::timestamp + make_interval(hours => tpl.h, mins => tpl.m))
+        (1,1,array[0,2,4],15,0),(1,2,array[0,2,4],16,0),(1,3,array[1,5],15,0),
+        (2,1,array[0,3],17,0),(2,2,array[0,3],18,0),
+        (3,1,array[0,2,5],15,30)) t(p,l,offs,h,m) loop
+      continue when not ((((d % 7) + 7) % 7) = any (tpl.offs));
+      v_starts := ((v_today + d)::timestamp + make_interval(hours => tpl.h, mins => tpl.m))
                   at time zone 'America/Los_Angeles';
       v_ends := v_starts + interval '1 hour';
-      v_week := ((w + 8) % 4) + 1;
-      select id, drills, title into v_item, v_drills, v_plan from curriculum_items
+      v_week := ((floor(d / 7.0)::int % 4) + 4) % 4 + 1;
+      select id, drills into v_item, v_drills from curriculum_items
         where level_id = lvl[tpl.p][tpl.l] and week_number = v_week;
-      select string_agg(n || '. ' || d, E'\n' order by n) into v_plan
-        from (select ord::int as n, d from jsonb_array_elements_text(v_drills) with ordinality as x(d, ord)) z;
+      select string_agg(n || '. ' || x, E'\n' order by n) into v_plan
+        from (select ord::int as n, x from jsonb_array_elements_text(v_drills) with ordinality as e(x, ord)) z;
       insert into sessions (organization_id, program_id, level_id, curriculum_item_id, location_id, coach_id,
                             starts_at, ends_at, max_athletes, session_plan, focus)
       values (v_org, prog[tpl.p], lvl[tpl.p][tpl.l], v_item, v_loc, coach_ids[tpl.p], v_starts, v_ends,
@@ -240,13 +242,13 @@ begin
       insert into session_athletes (organization_id, session_id, athlete_id)
       select v_org, v_sess, a.id from athletes a
       where a.current_level_id = lvl[tpl.p][tpl.l] and a.status in ('active', 'trial')
-        and a.join_date <= v_starts::date;
-      -- attendance for sessions already in the past (today's sessions are left open)
-      if v_starts::date < v_today then
+        and a.join_date <= v_today + d;
+      -- attendance for sessions on previous days (today's sessions are left open for the coach)
+      if d < 0 then
         insert into attendance (organization_id, session_id, athlete_id, status, marked_by, marked_at)
         select v_org, v_sess, sa.athlete_id,
                case
-                 when idx = any (disengaged) and v_starts::date > v_today - 21 then 'absent'
+                 when idx = any (disengaged) and d > -21 then 'absent'
                  when random() < 0.82 then 'present'
                  when random() < 0.45 then 'late'
                  else 'absent' end,
@@ -254,13 +256,13 @@ begin
         from (select sa2.athlete_id, array_position(athlete_ids, sa2.athlete_id) as idx
               from session_athletes sa2 where sa2.session_id = v_sess) sa;
         -- occasional coach note
-        if random() < 0.5 then
+        if random() < 0.35 then
           insert into coach_notes (organization_id, athlete_id, session_id, author_id, body, shareable, created_at)
           select v_org, sa.athlete_id, v_sess, coach_profiles[tpl.p],
                  note_bodies[1 + floor(random() * 10)::int], random() < 0.6, v_ends
           from session_athletes sa where sa.session_id = v_sess order by random() limit 1;
         end if;
-        if random() < 0.35 then
+        if random() < 0.25 then
           insert into coach_notes (organization_id, athlete_id, session_id, author_id, body, shareable, created_at)
           values (v_org, null, v_sess, coach_profiles[tpl.p], 'Good energy from the group. Focus was ' ||
                   (select title from curriculum_items where id = v_item) || '.', false, v_ends);

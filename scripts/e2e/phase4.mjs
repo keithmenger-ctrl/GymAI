@@ -31,7 +31,7 @@ check('level: capacity shown', (await page.innerText('main')).includes('/ 10 ath
 // curriculum
 await page.locator('a:has-text("Curriculum")').first().click()
 await page.waitForURL(/\/levels\//)
-const levelUrl = page.url()
+
 check('curriculum: empty state', (await page.innerText('main')).includes('No curriculum yet'))
 await page.fill('input[name=title]', 'Stance and Motion')
 await page.fill('textarea[name=objectives]', 'Athlete holds a balanced stance')

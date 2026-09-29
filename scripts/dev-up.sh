@@ -41,7 +41,7 @@ ENV
 if [ "${1:-}" = "--reset" ] || ! su postgres -c "psql -Atc \"select 1 from pg_database where datname='$DB'\"" | grep -q 1; then
   echo ">> (re)creating database $DB"
   pkill -x gotrue 2>/dev/null || true
-  psql_pg -c "\"alter user postgres password 'postgres'\"" -c "\"drop database if exists $DB\"" -c "\"create database $DB\""
+  psql_pg -c "\"alter user postgres password 'postgres'\"" -c "\"drop database if exists $DB with (force)\"" -c "\"create database $DB\""
   psql_pg $DB -f "$ROOT/supabase/tests/roles_stub.sql"
   (set -a; . /tmp/gotrue.env; set +a; cd "$GOTRUE_SRC" && "$GOTRUE_BIN" migrate)
   for f in "$ROOT"/supabase/migrations/*.sql "$ROOT"/supabase/seed.sql; do psql_pg $DB -f "$f" >/dev/null; done

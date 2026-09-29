@@ -21,40 +21,48 @@ async function passwordLink(email: string) {
   return `${await origin()}/auth/confirm?token_hash=${data.properties.hashed_token}&type=recovery&next=/set-password`
 }
 
+type Invitee = { id: string; name: string; email: string | null; profile_id: string | null }
+
 /**
- * Gives a guardian (parent) a login. Idempotent: if they already have one, just issues a fresh link.
- * The link is shown to the owner to share; wiring transactional email is not part of the MVP.
+ * Creates an auth user for a guardian/coach record (if it has none), assigns the role in this org,
+ * links the record, and returns a one-time set-password link. Idempotent: an already-linked
+ * person just gets a fresh link. Email delivery is not part of the MVP; the owner shares the link.
  */
-export async function inviteParent(guardianId: string): Promise<InviteResult> {
+async function invite(table: 'guardians' | 'coaches', role: 'parent' | 'coach', id: string): Promise<InviteResult> {
   const s = await requireAdmin()
-  const g = await withUser(s.userId, (q) =>
-    q<{ id: string; name: string; email: string | null; profile_id: string | null }>(
-      'select id, name, email, profile_id from guardians where id = $1',
-      [guardianId],
-    ),
+  const rows = await withUser(s.userId, (q) =>
+    q<Invitee>(`select id, name, email, profile_id from ${table} where id = $1`, [id]),
   )
-  const guardian = g[0]
-  if (!guardian) return { error: 'Parent not found.' }
-  if (!guardian.email) return { error: 'Add a parent email to the athlete first.' }
+  const person = rows[0]
+  if (!person) return { error: 'Not found.' }
+  if (!person.email) return { error: 'Add an email address first.' }
   try {
-    if (!guardian.profile_id) {
+    if (!person.profile_id) {
       const { data, error } = await supabaseAdmin().auth.admin.createUser({
-        email: guardian.email,
+        email: person.email,
         email_confirm: true,
-        user_metadata: { full_name: guardian.name },
+        user_metadata: { full_name: person.name },
       })
       if (error || !data.user) {
         return { error: /already|registered|exists/i.test(error?.message ?? '') ? 'That email already has an AcademyOS account.' : (error?.message ?? 'Could not create the login.') }
       }
       const uid = data.user.id
       await withServiceRole(async (q) => {
-        await q('insert into profiles (id, full_name, email) values ($1, $2, $3) on conflict (id) do nothing', [uid, guardian.name, guardian.email])
-        await q(`insert into user_roles (user_id, organization_id, role) values ($1, $2, 'parent')`, [uid, s.orgId])
-        await q('update guardians set profile_id = $1 where id = $2 and organization_id = $3', [uid, guardian.id, s.orgId])
+        await q('insert into profiles (id, full_name, email) values ($1, $2, $3) on conflict (id) do nothing', [uid, person.name, person.email])
+        await q('insert into user_roles (user_id, organization_id, role) values ($1, $2, $3)', [uid, s.orgId, role])
+        await q(`update ${table} set profile_id = $1 where id = $2 and organization_id = $3`, [uid, person.id, s.orgId])
       })
     }
-    return { link: await passwordLink(guardian.email) }
+    return { link: await passwordLink(person.email) }
   } catch (e) {
     return { error: e instanceof Error ? e.message : 'Could not create the invite.' }
   }
+}
+
+export async function inviteParent(guardianId: string) {
+  return invite('guardians', 'parent', guardianId)
+}
+
+export async function inviteCoach(coachId: string) {
+  return invite('coaches', 'coach', coachId)
 }

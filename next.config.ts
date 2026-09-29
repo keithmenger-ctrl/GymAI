@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  // lets a second dev server (e.g. Stripe-mode webhook tests) run from the same checkout
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   // Local dev without the Supabase docker stack: forward /auth/v1/* to a locally-run GoTrue.
   async rewrites() {
     const gotrue = process.env.DEV_GOTRUE_URL

@@ -55,10 +55,16 @@ su postgres -c "psql -q academyos_test -f supabase/tests/rls.sql"   # 49 tenant/
 - [x] 8. Athlete progress + parent portal (advance level, milestones, parent home/schedule/progress with RLS-enforced visibility)
 - [x] 9. Parent progress reports (generate from data snapshot + draft text, edit, share/unshare, parent view, print/save PDF)
 - [x] 10. Owner dashboard (today stats + sessions, program capacity + 30-day growth, activity + 14-day disengagement list, reassessment due, MRR / active / past-due memberships)
-- [ ] 11. Stripe memberships
+- [x] 11. Stripe memberships (plans, assign, cancel, past-due; Stripe Checkout + billing portal + webhook sync; dev mode with labelled payment simulation; settings: facility, timezone, locations)
 - [ ] 12. AI queries
 
 Anything not checked above is **not implemented**.
+
+## Billing
+- **Dev mode** (no `STRIPE_SECRET_KEY`): memberships/payments are database rows; the Billing page shows a "Dev mode" banner and "Sim. paid / Sim. failed" buttons to demo past-due flows. Parents see status and payment history but no pay button.
+- **Stripe mode**: saving a plan creates a Stripe Product/Price (a changed amount creates a new Price). Starting a membership creates it as *Awaiting payment* plus a Stripe Checkout link for the parent (also available as "Complete payment" in the parent portal). `/api/stripe/webhook` (signature-verified, idempotent) syncs `checkout.session.completed`, `customer.subscription.*` and `invoice.paid/payment_failed` into memberships and payments. Parents manage cards through the Stripe billing portal.
+- Point a Stripe webhook endpoint at `https://<host>/api/stripe/webhook` with those events and set `STRIPE_WEBHOOK_SECRET`.
+- Tested here: dev mode end-to-end, and webhook processing with locally signed events (`node scripts/e2e/stripe-webhook.mjs` against a Stripe-mode dev server). **Not tested here:** live calls to Stripe's API (Checkout, Products/Prices, billing portal), because this environment's network blocks api.stripe.com.
 
 ## Data access design
 Supabase Auth handles identity (`@supabase/ssr` cookies, verified with `auth.getUser()` on every request). Data is read/written with plain SQL through `pg`, inside a transaction that first sets the caller's identity and switches to the `authenticated` role (`src/lib/db.ts → withUser`). Row level security therefore applies to every query the app makes, while dashboards/reports can use real SQL joins and aggregates. `withServiceRole` (bypasses RLS) exists only for server-side jobs (invites, Stripe webhook).
@@ -66,4 +72,4 @@ Supabase Auth handles identity (`@supabase/ssr` cookies, verified with `auth.get
 ## Local development
 Against a real Supabase project: copy `.env.example` to `.env.local`, fill it in, run the SQL in `supabase/migrations` then `supabase/seed.sql` (SQL editor or `supabase db push`), `npm install && npm run dev`.
 
-Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`, `node scripts/e2e/phase4.mjs`, `node scripts/e2e/phase5.mjs`, `node scripts/e2e/phase7.mjs`, `node scripts/e2e/phase8.mjs`, `node scripts/e2e/phase9.mjs`, `node scripts/e2e/phase10.mjs`.
+Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`, `node scripts/e2e/phase4.mjs`, `node scripts/e2e/phase5.mjs`, `node scripts/e2e/phase7.mjs`, `node scripts/e2e/phase8.mjs`, `node scripts/e2e/phase9.mjs`, `node scripts/e2e/phase10.mjs`, `node scripts/e2e/phase11.mjs`.

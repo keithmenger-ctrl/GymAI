@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PUBLIC = ['/login', '/signup', '/auth/confirm']
+const PUBLIC = ['/login', '/signup', '/auth/confirm', '/api/stripe/webhook']
 
 // Refreshes the auth cookie and bounces signed-out visitors to /login.
 // This is an optimistic check only; real authorization happens server-side (lib/auth.ts + RLS).

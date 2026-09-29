@@ -1,5 +1,5 @@
 // Owner dashboard.
-import { launch, login, check, done, BASE } from './lib.mjs'
+import { launch, login, check, done } from './lib.mjs'
 
 const { browser, page, errors } = await launch({ width: 1366, height: 900 })
 await login(page, 'owner@vegaselite.test')

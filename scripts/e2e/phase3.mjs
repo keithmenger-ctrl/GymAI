@@ -3,7 +3,7 @@ import { launch, login, check, done, BASE } from './lib.mjs'
 const path = (page) => new URL(page.url()).pathname
 const stamp = Date.now().toString().slice(-6)
 
-const { browser, ctx, page, errors } = await launch()
+const { browser, page, errors } = await launch()
 await login(page, 'owner@vegaselite.test')
 
 // list, search, filter
@@ -21,7 +21,7 @@ check('empty state on no match', (await page.innerText('main')).includes('No ath
 await page.goto(`${BASE}/athletes?q=Johnny`)
 await page.click('tbody tr a')
 await page.waitForURL(/\/athletes\/[0-9a-f-]{36}$/)
-const profileUrl = page.url()
+
 let txt = await page.innerText('main')
 check('profile: name', txt.includes('Johnny Alvarez'))
 check('profile: program + level', txt.includes('Youth Speed Development') && txt.includes('Level 1'))

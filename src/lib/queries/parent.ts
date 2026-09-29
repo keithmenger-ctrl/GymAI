@@ -12,6 +12,7 @@ export type ParentAthlete = {
   next_session: { starts_at: string; program: string; level: string | null; focus: string | null } | null
   latest_note: { body: string; created_at: string } | null
   membership: { plan: string; price_cents: number; status: string; next_billing_date: string | null } | null
+  latest_report: { id: string; title: string } | null
 }
 
 /** Everything a parent's home screen needs. RLS limits rows to the parent's own athletes. */
@@ -33,7 +34,9 @@ export const myAthletes = (s: Session) =>
               (select json_build_object('plan', mp.name, 'price_cents', mp.price_cents, 'status', m.status,
                                         'next_billing_date', m.next_billing_date)
                  from memberships m join membership_plans mp on mp.id = m.plan_id
-                where m.athlete_id = a.id order by (m.status = 'canceled'), m.created_at desc limit 1) as membership
+                where m.athlete_id = a.id order by (m.status = 'canceled'), m.created_at desc limit 1) as membership,
+              (select json_build_object('id', r.id, 'title', r.title) from progress_reports r
+                where r.athlete_id = a.id and r.status = 'shared' order by r.shared_at desc limit 1) as latest_report
          from athletes a
          left join programs p on p.id = a.current_program_id
          left join program_levels l on l.id = a.current_level_id

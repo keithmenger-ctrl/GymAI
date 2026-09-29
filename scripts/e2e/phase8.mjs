@@ -1,7 +1,6 @@
 // Athlete progress actions + parent portal.
 import { launch, login, check, done, BASE } from './lib.mjs'
 
-const path = (p) => new URL(p.url()).pathname
 const stamp = Date.now().toString().slice(-5)
 let johnnyUrl, otherAthleteUrl
 

@@ -6,6 +6,8 @@ import { ActionForm } from '@/components/form'
 import { Button, Input } from '@/components/ui'
 import { addMilestone, changeLevel } from '@/lib/actions/progress'
 import { withUser } from '@/lib/db'
+import { listReports } from '@/lib/queries/reports'
+import { GenerateReportButton } from '@/components/report/generate-button'
 import { fmtDate, fmtShortDate, initials, num, relativeDays } from '@/lib/format'
 import type { Session } from '@/lib/auth'
 import {
@@ -37,7 +39,7 @@ function Section({ title, children, aside }: { title: string; children: React.Re
 export async function AthleteProfile({
   session, id, viewer, editHref, tz,
 }: { session: Session; id: string; viewer: 'admin' | 'coach' | 'parent'; editHref?: string; tz: string }) {
-  const [a, att, recent, series, notes, timeline, focus] = await Promise.all([
+  const [a, att, recent, series, notes, timeline, focus, reports] = await Promise.all([
     getAthlete(session, id),
     attendanceSummary(session, id),
     recentAttendance(session, id),
@@ -45,7 +47,10 @@ export async function AthleteProfile({
     athleteNotes(session, id),
     athleteTimeline(session, id),
     currentFocus(session, id),
+    listReports(session, id),
   ])
+  const reportHref = (rid: string) =>
+    viewer === 'admin' ? `/reports/${rid}` : viewer === 'coach' ? `/coach/reports/${rid}` : `/parent/reports/${rid}`
   if (!a) return null
   const nextLevel =
     viewer === 'admin' && a.current_program_id
@@ -76,7 +81,8 @@ export async function AthleteProfile({
           </div>
           <StatusBadge status={a.status} />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {viewer !== 'parent' && <GenerateReportButton athleteId={a.id} />}
           {nextLevel && (
             <form action={changeLevel.bind(null, a.id, nextLevel.id)}>
               <Button>Advance to {nextLevel.name}</Button>
@@ -213,6 +219,25 @@ export async function AthleteProfile({
                     {viewer !== 'admin' && <p className="mt-1 text-xs text-muted">{g.has_login ? 'Has portal access' : 'No portal access yet'}</p>}
                   </div>
                 ))
+              )}
+            </Section>
+          )}
+
+          {(reports.length > 0 || viewer === 'parent') && (
+            <Section title="Progress reports">
+              {reports.length === 0 ? (
+                <p className="text-sm text-muted">No reports shared yet.</p>
+              ) : (
+                <ul className="divide-y divide-line text-sm">
+                  {reports.map((r) => (
+                    <li key={r.id}>
+                      <Link href={reportHref(r.id)} className="flex items-center justify-between gap-3 py-2 hover:underline">
+                        <span className="min-w-0 truncate">{r.title}</span>
+                        {viewer !== 'parent' && <Badge tone={r.status === 'shared' ? 'ok' : 'neutral'}>{r.status === 'shared' ? 'Shared' : 'Draft'}</Badge>}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               )}
             </Section>
           )}

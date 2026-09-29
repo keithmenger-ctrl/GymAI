@@ -5,8 +5,8 @@ import { UserMenu, Wordmark } from './user-menu'
 /** Phone-first shell used by coaches and parents: slim top bar + big bottom tabs. */
 export function MobileShell({ session, nav, children }: { session: Session; nav: NavItem[]; children: React.ReactNode }) {
   return (
-    <div className="min-h-screen pb-24">
-      <header className="sticky top-0 z-10 border-b border-line bg-paper/90 backdrop-blur">
+    <div className="min-h-screen pb-24 print:pb-0">
+      <header className="sticky top-0 z-10 border-b border-line bg-paper/90 backdrop-blur print:hidden">
         <div className="mx-auto flex max-w-xl items-center justify-between px-4 py-3">
           <Wordmark org={session.orgName} />
           <UserMenu session={session} />

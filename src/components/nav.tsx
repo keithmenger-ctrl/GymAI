@@ -73,7 +73,7 @@ export function BottomTabs({ items }: { items: NavItem[] }) {
   const path = usePathname()
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-card/95 backdrop-blur pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-x-0 bottom-0 z-20 print:hidden border-t border-line bg-card/95 backdrop-blur pb-[env(safe-area-inset-bottom)]"
       aria-label="Primary"
     >
       <ul className="mx-auto flex max-w-xl">

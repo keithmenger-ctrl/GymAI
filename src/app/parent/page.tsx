@@ -63,6 +63,15 @@ export default async function ParentHome() {
                     </blockquote>
                   )}
                 </div>
+                {a.latest_report && (
+                  <Link href={`/parent/reports/${a.latest_report.id}`} className="flex items-center justify-between border-t border-line bg-volt/30 px-5 py-4 active:bg-volt/50">
+                    <span>
+                      <span className="block text-xs font-medium uppercase tracking-wide text-muted">Latest progress report</span>
+                      <span className="font-medium">{a.latest_report.title}</span>
+                    </span>
+                    <ChevronRight className="size-5 text-muted" aria-hidden />
+                  </Link>
+                )}
                 <Link href={`/parent/progress/${a.id}`} className="flex items-center justify-between border-t border-line px-5 py-4 font-medium active:bg-stone-50">
                   View progress <ChevronRight className="size-5 text-muted" aria-hidden />
                 </Link>

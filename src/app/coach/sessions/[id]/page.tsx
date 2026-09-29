@@ -6,6 +6,7 @@ import { AttendanceRoster } from '@/components/session/attendance'
 import { SessionNotes } from '@/components/session/notes'
 import { SessionPlan } from '@/components/session/plan'
 import { fmtTime } from '@/lib/format'
+import { buttonClass } from '@/components/ui'
 
 export const metadata = { title: 'Session' }
 
@@ -30,6 +31,11 @@ export default async function CoachSessionPage({ params }: PageProps<'/coach/ses
       <section>
         <h2 className="mb-3 text-lg font-semibold">Athletes <span className="font-normal text-muted">({session.roster.length})</span></h2>
         <AttendanceRoster sessionId={id} roster={session.roster} athleteBase="/coach/athletes" />
+        {session.roster.length > 0 && (
+          <Link href={`/coach/assessments?session=${id}`} className={`${buttonClass('secondary', 'lg')} mt-3 w-full`}>
+            Record assessments for this group
+          </Link>
+        )}
       </section>
       <section>
         <h2 className="mb-3 text-lg font-semibold">Session notes</h2>

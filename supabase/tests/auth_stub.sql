@@ -16,7 +16,8 @@ create table if not exists auth.users (
   raw_app_meta_data jsonb default '{}'::jsonb,
   raw_user_meta_data jsonb default '{}'::jsonb,
   created_at timestamptz, updated_at timestamptz,
-  confirmation_token text, email_change text, email_change_token_new text, recovery_token text
+  confirmation_token text, email_change text, email_change_token_new text, recovery_token text,
+  email_change_token_current text, phone_change text, phone_change_token text, reauthentication_token text
 );
 create table if not exists auth.identities (
   id uuid primary key default gen_random_uuid(),

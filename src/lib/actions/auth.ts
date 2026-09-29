@@ -1,0 +1,59 @@
+'use server'
+
+import { redirect } from 'next/navigation'
+import { supabaseServer } from '@/lib/supabase/server'
+import { withUser } from '@/lib/db'
+import { getSession, homeFor } from '@/lib/auth'
+
+export type FormState = { error?: string; message?: string } | undefined
+
+const str = (fd: FormData, k: string) => String(fd.get(k) ?? '').trim()
+
+export async function login(_: FormState, fd: FormData): Promise<FormState> {
+  const supabase = await supabaseServer()
+  const { error } = await supabase.auth.signInWithPassword({ email: str(fd, 'email'), password: str(fd, 'password') })
+  if (error) return { error: 'Incorrect email or password.' }
+  const s = await getSession()
+  redirect(s ? homeFor(s.role) : '/onboarding')
+}
+
+export async function signup(_: FormState, fd: FormData): Promise<FormState> {
+  const orgName = str(fd, 'orgName')
+  const fullName = str(fd, 'fullName')
+  const email = str(fd, 'email')
+  const password = str(fd, 'password')
+  if (!orgName || !fullName || !email) return { error: 'Please fill in every field.' }
+  if (password.length < 8) return { error: 'Password must be at least 8 characters.' }
+
+  const supabase = await supabaseServer()
+  const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } })
+  if (error) return { error: error.message }
+  if (!data.session || !data.user) {
+    // Email confirmation is enabled on this project: finish the org setup at first login (/onboarding).
+    return { message: 'Check your email to confirm your account, then sign in to finish setting up your facility.' }
+  }
+  await withUser(data.user.id, (q) => q('select create_organization($1, $2)', [orgName, fullName]))
+  redirect('/dashboard')
+}
+
+/** For a signed-in user who has no organization yet (e.g. confirmed email after signing up). */
+export async function createOrganization(_: FormState, fd: FormData): Promise<FormState> {
+  const supabase = await supabaseServer()
+  const { data } = await supabase.auth.getUser()
+  if (!data.user) redirect('/login')
+  const orgName = str(fd, 'orgName')
+  const fullName = str(fd, 'fullName')
+  if (!orgName || !fullName) return { error: 'Please fill in every field.' }
+  try {
+    await withUser(data.user.id, (q) => q('select create_organization($1, $2)', [orgName, fullName]))
+  } catch {
+    return { error: 'Could not create your facility. You may already belong to one.' }
+  }
+  redirect('/dashboard')
+}
+
+export async function logout() {
+  const supabase = await supabaseServer()
+  await supabase.auth.signOut()
+  redirect('/login')
+}

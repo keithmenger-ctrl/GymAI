@@ -46,7 +46,7 @@ su postgres -c "psql -q academyos_test -f supabase/tests/rls.sql"   # 49 tenant/
 ## Development plan
 - [x] 0. Repo + Next.js scaffold
 - [x] 1. Schema, RLS, seed, isolation tests
-- [ ] 2. Auth, org signup, role routing, app shells
+- [x] 2. Auth, org signup, role routing, app shells
 - [ ] 3. Athletes
 - [ ] 4. Programs / levels / curriculum
 - [ ] 5. Sessions + attendance
@@ -60,9 +60,10 @@ su postgres -c "psql -q academyos_test -f supabase/tests/rls.sql"   # 49 tenant/
 
 Anything not checked above is **not implemented**.
 
-## Running the app
-```bash
-cp .env.example .env.local   # fill in Supabase values
-npm install
-npm run dev
-```
+## Data access design
+Supabase Auth handles identity (`@supabase/ssr` cookies, verified with `auth.getUser()` on every request). Data is read/written with plain SQL through `pg`, inside a transaction that first sets the caller's identity and switches to the `authenticated` role (`src/lib/db.ts → withUser`). Row level security therefore applies to every query the app makes, while dashboards/reports can use real SQL joins and aggregates. `withServiceRole` (bypasses RLS) exists only for server-side jobs (invites, Stripe webhook).
+
+## Local development
+Against a real Supabase project: copy `.env.example` to `.env.local`, fill it in, run the SQL in `supabase/migrations` then `supabase/seed.sql` (SQL editor or `supabase db push`), `npm install && npm run dev`.
+
+Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks: `node scripts/e2e/phase2.mjs`.

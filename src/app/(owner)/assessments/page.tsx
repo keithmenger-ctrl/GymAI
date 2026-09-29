@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth'
-import { dueForReassessment, listAssessmentTypes, recentResults } from '@/lib/queries/assessments'
+import { dueForReassessment, dueLabel, listAssessmentTypes, recentResults } from '@/lib/queries/assessments'
 import { deleteAssessmentType, saveAssessmentType } from '@/lib/actions/assessments'
 import { ActionForm, ConfirmButton } from '@/components/form'
 import { Badge, Card, EmptyState, Field, Input, PageHeader, Select, buttonClass } from '@/components/ui'
@@ -56,9 +56,7 @@ export default async function AssessmentsPage() {
                       {d.program ? `${d.program} · ${d.level ?? ''}` : 'No program'}
                     </span>
                   </span>
-                  <Badge tone={d.last_assessed ? 'warn' : 'neutral'} className="shrink-0">
-                    {d.last_assessed ? `${d.days_since} days` : 'Never tested'}
-                  </Badge>
+                  <Badge tone={d.last_assessed ? 'warn' : 'neutral'} className="shrink-0">{dueLabel(d)}</Badge>
                 </li>
               ))}
             </ul>

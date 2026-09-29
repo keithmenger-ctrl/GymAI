@@ -40,11 +40,11 @@ export const buildSnapshot = (s: Session, athleteId: string) =>
     // first vs latest result per metric over the last ~6 months
     const improvements = await q<Improvement>(
       `select t.name, t.unit,
-              (array_agg(r.value order by r.recorded_on, r.id))[1]::float8 as first,
-              (array_agg(r.value order by r.recorded_on desc, r.id desc))[1]::float8 as last,
+              (array_agg(r.value order by r.recorded_on, r.created_at))[1]::float8 as first,
+              (array_agg(r.value order by r.recorded_on desc, r.created_at desc))[1]::float8 as last,
               case when count(*) < 2 then null
-                   when t.direction = 'lower' then (array_agg(r.value order by r.recorded_on desc, r.id desc))[1] < (array_agg(r.value order by r.recorded_on, r.id))[1]
-                   else (array_agg(r.value order by r.recorded_on desc, r.id desc))[1] > (array_agg(r.value order by r.recorded_on, r.id))[1] end as better
+                   when t.direction = 'lower' then (array_agg(r.value order by r.recorded_on desc, r.created_at desc))[1] < (array_agg(r.value order by r.recorded_on, r.created_at))[1]
+                   else (array_agg(r.value order by r.recorded_on desc, r.created_at desc))[1] > (array_agg(r.value order by r.recorded_on, r.created_at))[1] end as better
          from assessment_results r join assessment_types t on t.id = r.type_id
         where r.athlete_id = $1 and r.recorded_on > (now() at time zone $2)::date - 180
         group by t.id having count(*) >= 2

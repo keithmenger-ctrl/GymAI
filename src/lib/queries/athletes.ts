@@ -156,7 +156,7 @@ export const assessmentSeries = (s: Session, athleteId: string) =>
     q<AssessmentSeries>(
       `select t.id as type_id, t.name, t.unit, t.direction, t.category,
               json_agg(json_build_object('id', r.id, 'value', r.value::text, 'recorded_on', r.recorded_on::text)
-                       order by r.recorded_on, r.id) as results
+                       order by r.recorded_on, r.created_at) as results
          from assessment_results r join assessment_types t on t.id = r.type_id
         where r.athlete_id = $1
         group by t.id

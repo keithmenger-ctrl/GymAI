@@ -68,6 +68,13 @@ export const dueForReassessment = (s: Session) =>
     ),
   )
 
+/** "Never tested" / "10 Yard Sprint overdue" / "3 tests overdue". */
+export function dueLabel(d: DueAthlete) {
+  const n = d.overdue_metrics.length
+  if (!d.last_assessed) return 'Never tested'
+  return n === 1 ? `${d.overdue_metrics[0]} overdue` : `${n} tests overdue`
+}
+
 export type RecentResult = {
   id: string
   athlete_id: string
@@ -88,14 +95,14 @@ export const recentResults = (s: Session, limit = 25) =>
               r.value::text as value,
               (select p.value::text from assessment_results p
                 where p.athlete_id = r.athlete_id and p.type_id = r.type_id
-                  and (p.recorded_on, p.id) < (r.recorded_on, r.id)
-                order by p.recorded_on desc, p.id desc limit 1) as previous,
+                  and (p.recorded_on, p.created_at) < (r.recorded_on, r.created_at)
+                order by p.recorded_on desc, p.created_at desc limit 1) as previous,
               r.recorded_on::text as recorded_on, pr.full_name as recorded_by
          from assessment_results r
          join athletes a on a.id = r.athlete_id
          join assessment_types t on t.id = r.type_id
          left join profiles pr on pr.id = r.recorded_by
-        order by r.recorded_on desc, r.id desc limit $1`,
+        order by r.recorded_on desc, r.created_at desc limit $1`,
       [limit],
     ),
   )
@@ -108,9 +115,9 @@ export const recorderAthletes = (s: Session, source: { sessionId?: string; level
     q<RecorderAthlete>(
       `select a.id, a.first_name || ' ' || a.last_name as name,
               (select r.value::text from assessment_results r where r.athlete_id = a.id and r.type_id = $3
-                order by r.recorded_on desc, r.id desc limit 1) as previous,
+                order by r.recorded_on desc, r.created_at desc limit 1) as previous,
               (select r.recorded_on::text from assessment_results r where r.athlete_id = a.id and r.type_id = $3
-                order by r.recorded_on desc, r.id desc limit 1) as previous_on
+                order by r.recorded_on desc, r.created_at desc limit 1) as previous_on
          from athletes a
         where ($1::uuid is not null and a.id in (select athlete_id from session_athletes where session_id = $1))
            or ($1::uuid is null and $2::uuid is not null and a.current_level_id = $2 and a.status in ('active','trial'))

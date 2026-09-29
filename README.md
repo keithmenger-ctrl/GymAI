@@ -54,7 +54,7 @@ su postgres -c "psql -q academyos_test -f supabase/tests/rls.sql"   # 49 tenant/
 - [x] 7. Assessments (metrics admin, due-for-reassessment list, recent results, phone recorder by session or level with previous value + live delta)
 - [x] 8. Athlete progress + parent portal (advance level, milestones, parent home/schedule/progress with RLS-enforced visibility)
 - [x] 9. Parent progress reports (generate from data snapshot + draft text, edit, share/unshare, parent view, print/save PDF)
-- [ ] 10. Owner dashboard
+- [x] 10. Owner dashboard (today stats + sessions, program capacity + 30-day growth, activity + 14-day disengagement list, reassessment due, MRR / active / past-due memberships)
 - [ ] 11. Stripe memberships
 - [ ] 12. AI queries
 
@@ -66,4 +66,4 @@ Supabase Auth handles identity (`@supabase/ssr` cookies, verified with `auth.get
 ## Local development
 Against a real Supabase project: copy `.env.example` to `.env.local`, fill it in, run the SQL in `supabase/migrations` then `supabase/seed.sql` (SQL editor or `supabase db push`), `npm install && npm run dev`.
 
-Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`, `node scripts/e2e/phase4.mjs`, `node scripts/e2e/phase5.mjs`, `node scripts/e2e/phase7.mjs`, `node scripts/e2e/phase8.mjs`, `node scripts/e2e/phase9.mjs`.
+Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`, `node scripts/e2e/phase4.mjs`, `node scripts/e2e/phase5.mjs`, `node scripts/e2e/phase7.mjs`, `node scripts/e2e/phase8.mjs`, `node scripts/e2e/phase9.mjs`, `node scripts/e2e/phase10.mjs`.

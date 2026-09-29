@@ -57,3 +57,12 @@ export async function logout() {
   await supabase.auth.signOut()
   redirect('/login')
 }
+
+export async function setPassword(_: FormState, fd: FormData): Promise<FormState> {
+  const password = str(fd, 'password')
+  if (password.length < 8) return { error: 'Password must be at least 8 characters.' }
+  const supabase = await supabaseServer()
+  const { error } = await supabase.auth.updateUser({ password })
+  if (error) return { error: error.message }
+  redirect('/')
+}

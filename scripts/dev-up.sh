@@ -49,7 +49,7 @@ fi
 
 if ! curl -sf -m 2 localhost:9999/health >/dev/null; then
   echo ">> starting GoTrue on :9999"
-  (set -a; . /tmp/gotrue.env; set +a; cd "$GOTRUE_SRC" && nohup "$GOTRUE_BIN" serve > /tmp/gotrue.log 2>&1 &)
+  (set -a; . /tmp/gotrue.env; set +a; cd "$GOTRUE_SRC" && setsid nohup "$GOTRUE_BIN" serve > /tmp/gotrue.log 2>&1 < /dev/null &)
   for _ in $(seq 1 20); do curl -sf -m 2 localhost:9999/health >/dev/null && break; sleep 1; done
 fi
 echo ">> ready. Next: cp .env.example .env.local (see README 'Local development'), then npm run dev"

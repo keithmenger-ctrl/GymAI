@@ -47,7 +47,7 @@ su postgres -c "psql -q academyos_test -f supabase/tests/rls.sql"   # 49 tenant/
 - [x] 0. Repo + Next.js scaffold
 - [x] 1. Schema, RLS, seed, isolation tests
 - [x] 2. Auth, org signup, role routing, app shells
-- [ ] 3. Athletes
+- [x] 3. Athletes (list/search/filter, create/edit, full profile incl. attendance, assessment history, notes, timeline, parent invite links)
 - [ ] 4. Programs / levels / curriculum
 - [ ] 5. Sessions + attendance
 - [ ] 6. Coach Today
@@ -66,4 +66,4 @@ Supabase Auth handles identity (`@supabase/ssr` cookies, verified with `auth.get
 ## Local development
 Against a real Supabase project: copy `.env.example` to `.env.local`, fill it in, run the SQL in `supabase/migrations` then `supabase/seed.sql` (SQL editor or `supabase db push`), `npm install && npm run dev`.
 
-Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks: `node scripts/e2e/phase2.mjs`.
+Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`.

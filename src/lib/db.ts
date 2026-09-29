@@ -1,4 +1,8 @@
-import { Pool, type PoolClient, type QueryResultRow } from 'pg'
+import { Pool, types, type PoolClient, type QueryResultRow } from 'pg'
+
+// `date` columns stay as 'YYYY-MM-DD' strings (no timezone drift); counts (int8) become numbers.
+types.setTypeParser(1082, (v) => v)
+types.setTypeParser(20, (v) => parseInt(v, 10))
 
 const globalForPg = globalThis as unknown as { pgPool?: Pool }
 

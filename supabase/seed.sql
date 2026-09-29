@@ -199,7 +199,7 @@ begin
     athlete_ids := athlete_ids || v_aid;
     insert into athlete_guardians (organization_id, athlete_id, guardian_id) values (v_org, v_aid, guardian_ids[gmap[i]]);
     insert into athlete_progress_events (organization_id, athlete_id, kind, title, occurred_at)
-    select v_org, v_aid, 'milestone', 'Joined Vegas Elite Performance', join_date from athletes where id = v_aid;
+    select v_org, v_aid, 'milestone', 'Joined Vegas Elite Performance', (join_date::timestamp + interval '12 hours') at time zone 'UTC' from athletes where id = v_aid;
   end loop;
 
   -- ------------------------------------------------ assessment types
@@ -293,7 +293,7 @@ begin
   for i in 1..30 loop
     if lvl_of[i] > 1 then
       insert into athlete_progress_events (organization_id, athlete_id, kind, title, occurred_at)
-      values (v_org, athlete_ids[i], 'level_change', 'Advanced to Level ' || lvl_of[i], v_today - (40 + i * 3));
+      values (v_org, athlete_ids[i], 'level_change', 'Advanced to Level ' || lvl_of[i], ((v_today - (40 + i * 3))::timestamp + interval '12 hours') at time zone 'UTC');
     end if;
   end loop;
 

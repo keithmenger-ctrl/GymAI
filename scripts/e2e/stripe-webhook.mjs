@@ -1,6 +1,7 @@
 // Stripe webhook sync, tested without Stripe's network: events are signed locally with the webhook secret.
 // Needs a dev server in Stripe mode:
 //   NEXT_DIST_DIR=.next-stripe STRIPE_SECRET_KEY=sk_test_x STRIPE_WEBHOOK_SECRET=whsec_test_secret npx next dev -p 3001
+// Note: next dev adds .next-stripe paths to tsconfig.json; revert that after the run.
 import Stripe from 'stripe'
 import pg from 'pg'
 import { check, done } from './lib.mjs'

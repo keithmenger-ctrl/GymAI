@@ -27,7 +27,7 @@ Single Next.js (App Router, TypeScript, Tailwind) monolith on Supabase (Postgres
 - **Tenancy:** every tenant table has `organization_id`. Composite FKs `(organization_id, id)` make cross-org references impossible at the database level.
 - **Authorization:** enforced by Postgres RLS (`supabase/migrations/0002_rls.sql`) using `auth_org_id()` / `auth_role()` / `is_guardian_of()`. The app talks to the DB with the signed-in user's session so RLS always applies. The service-role key is used only for invites, the Stripe webhook and seeding. Server code also checks roles; nothing trusts the client.
 - **Timeline:** DB triggers write `athlete_progress_events` for assessments, notes and program/level changes.
-- **AI:** predefined, typed, read-only queries over structured data. AI never writes without explicit user confirmation. (Phase 12.)
+- **AI:** `src/lib/ai/queries.ts` is a registry of typed, read-only queries (inactive 14 days, due for reassessment, almost full, open capacity, draft progress report, 60-day summary) that reuse the app's own query functions under RLS. Questions are routed by deterministic keyword + athlete-name matching (no model call). When `ANTHROPIC_API_KEY` is set, Claude (`claude-opus-5-5`, low effort, default refusal fallback) only turns structured facts into prose; any failure falls back to a template. Nothing is written until a staff member clicks "Save as draft report", and drafts are never shared automatically. Not implemented: free-form LLM routing / open-ended questions; the live Claude call is untested here (no key in this environment).
 
 ## Database
 Migrations live in `supabase/migrations`:
@@ -56,7 +56,7 @@ su postgres -c "psql -q academyos_test -f supabase/tests/rls.sql"   # 49 tenant/
 - [x] 9. Parent progress reports (generate from data snapshot + draft text, edit, share/unshare, parent view, print/save PDF)
 - [x] 10. Owner dashboard (today stats + sessions, program capacity + 30-day growth, activity + 14-day disengagement list, reassessment due, MRR / active / past-due memberships)
 - [x] 11. Stripe memberships (plans, assign, cancel, past-due; Stripe Checkout + billing portal + webhook sync; dev mode with labelled payment simulation; settings: facility, timezone, locations)
-- [ ] 12. AI queries
+- [x] 12. AI queries (Assistant page: 6 predefined read-only queries, keyword routing with athlete-name matching, Claude-drafted text when ANTHROPIC_API_KEY is set, human-confirmed save as draft)
 
 Anything not checked above is **not implemented**.
 
@@ -72,4 +72,4 @@ Supabase Auth handles identity (`@supabase/ssr` cookies, verified with `auth.get
 ## Local development
 Against a real Supabase project: copy `.env.example` to `.env.local`, fill it in, run the SQL in `supabase/migrations` then `supabase/seed.sql` (SQL editor or `supabase db push`), `npm install && npm run dev`.
 
-Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`, `node scripts/e2e/phase4.mjs`, `node scripts/e2e/phase5.mjs`, `node scripts/e2e/phase7.mjs`, `node scripts/e2e/phase8.mjs`, `node scripts/e2e/phase9.mjs`, `node scripts/e2e/phase10.mjs`, `node scripts/e2e/phase11.mjs`.
+Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`, `node scripts/e2e/phase4.mjs`, `node scripts/e2e/phase5.mjs`, `node scripts/e2e/phase7.mjs`, `node scripts/e2e/phase8.mjs`, `node scripts/e2e/phase9.mjs`, `node scripts/e2e/phase10.mjs`, `node scripts/e2e/phase11.mjs`, `node scripts/e2e/phase12.mjs`.

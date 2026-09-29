@@ -3,7 +3,8 @@ import { requireAdmin } from '@/lib/auth'
 import { activityStats, financeStats, notAttendedSince, programCapacity, todayStats } from '@/lib/queries/dashboard'
 import { dueForReassessment, dueLabel } from '@/lib/queries/assessments'
 import { todaysSessions } from '@/lib/queries/sessions'
-import { Badge, Card, Stat } from '@/components/ui'
+import { Badge, Card, Stat, buttonClass } from '@/components/ui'
+import { Sparkles } from 'lucide-react'
 import { attendanceLabel } from '@/components/session/session-card'
 import { fmtTime, fmtWeekday, money } from '@/lib/format'
 import { cn } from '@/lib/cn'
@@ -35,9 +36,12 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <div className="mb-8">
-        <p className="text-sm text-muted">{fmtWeekday(new Date(), s.timezone)}</p>
-        <h1 className="text-2xl font-semibold tracking-tight">{s.orgName}</h1>
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-sm text-muted">{fmtWeekday(new Date(), s.timezone)}</p>
+          <h1 className="text-2xl font-semibold tracking-tight">{s.orgName}</h1>
+        </div>
+        <Link href="/assistant" className={buttonClass('secondary')}><Sparkles className="size-4" aria-hidden /> Ask the assistant</Link>
       </div>
 
       {/* TODAY */}

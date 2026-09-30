@@ -34,7 +34,6 @@ export function ImportForm() {
         <form action={previewAction} className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <label className="text-sm font-medium" htmlFor="file">CSV file</label>
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- file download from a route handler, not a page */}
             <a href="/athletes/import/template" download className="text-sm underline underline-offset-4">Download the template</a>
           </div>
           <input id="file" name="file" type="file" accept=".csv,text/csv" className="block w-full text-sm file:mr-3 file:h-10 file:rounded-lg file:border file:border-line file:bg-card file:px-4 file:text-sm file:font-medium" />

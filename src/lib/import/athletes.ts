@@ -140,6 +140,7 @@ export async function commitImport(q: Q, orgId: string, rows: ImportRow[]) {
     await q(`insert into athlete_progress_events (organization_id, athlete_id, kind, title, occurred_at)
              values ($1, $2, 'milestone', 'Joined ' || (select name from organizations where id = $1), coalesce($3::date, current_date) + time '12:00')`,
       [orgId, a.id, r.join_date ?? null])
+    await q('select sync_future_rosters($1)', [a.id])
     if (r.parent_name) {
       let gid = r.parent_email
         ? (await q<{ id: string }>('select id from guardians where lower(email) = $1 limit 1', [r.parent_email]))[0]?.id

@@ -97,6 +97,7 @@ export async function createAthlete(_: FormState, fd: FormData): Promise<FormSta
         [s.orgId, a[0].id],
       )
       await saveGuardian(q, s.orgId, a[0].id, d)
+      await q('select sync_future_rosters($1)', [a[0].id])
       return a[0].id
     })
   } catch (e) {
@@ -114,6 +115,8 @@ export async function updateAthlete(id: string, _: FormState, fd: FormData): Pro
   try {
     await withUser(s.userId, async (q) => {
       await assertLevelInProgram(q, d)
+      const [before] = await q<{ level: string | null; status: string }>(
+        'select current_level_id as level, status from athletes where id = $1', [id])
       const r = await q(
         `update athletes set first_name=$2, last_name=$3, date_of_birth=$4, sport_id=$5, position=$6, school_team=$7,
                 status=$8, join_date=coalesce($9::date, join_date), notes=$10, current_program_id=$11, current_level_id=$12
@@ -123,6 +126,9 @@ export async function updateAthlete(id: string, _: FormState, fd: FormData): Pro
       )
       if (!r.length) throw new Error('Athlete not found.')
       await saveGuardian(q, s.orgId, id, d)
+      if (before && (before.level !== (d.level_id ?? null) || before.status !== d.status)) {
+        await q('select sync_future_rosters($1, $2)', [id, before.level])
+      }
     })
   } catch (e) {
     return { error: e instanceof Error ? e.message : 'Could not save the athlete.' }

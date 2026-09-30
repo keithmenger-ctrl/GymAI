@@ -1,5 +1,5 @@
 // Feedback button + usage events land in the database.
-import { launch, login, check, done, BASE } from './lib.mjs'
+import { launch, login, check, done } from './lib.mjs'
 import pg from 'pg'
 
 const db = new pg.Client({ connectionString: process.env.DATABASE_URL || 'postgres://postgres:postgres@127.0.0.1:5432/academyos_dev' })

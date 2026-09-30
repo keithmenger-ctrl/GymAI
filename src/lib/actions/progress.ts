@@ -15,14 +15,17 @@ const refresh = (athleteId: string) => {
 /** Moves an athlete to another level of their current program. The DB trigger records the level change. */
 export async function changeLevel(athleteId: string, levelId: string) {
   const s = await requireAdmin()
-  await withUser(s.userId, (q) =>
-    q(
+  await withUser(s.userId, async (q) => {
+    const [before] = await q<{ level: string | null }>('select current_level_id as level from athletes where id = $1', [athleteId])
+    const moved = await q(
       `update athletes a set current_level_id = l.id
          from program_levels l
-        where a.id = $1 and l.id = $2 and l.program_id = a.current_program_id`,
+        where a.id = $1 and l.id = $2 and l.program_id = a.current_program_id
+        returning a.id`,
       [athleteId, levelId],
-    ),
-  )
+    )
+    if (moved.length) await q('select sync_future_rosters($1, $2)', [athleteId, before?.level ?? null])
+  })
   refresh(athleteId)
   revalidatePath('/athletes')
 }

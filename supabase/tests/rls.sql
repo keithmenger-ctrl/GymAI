@@ -175,6 +175,20 @@ begin
   perform t.check('parent sees shared report only',
     (select count(*) from progress_reports) = 1 and (select count(*) from progress_reports where status = 'draft') = 0);
 
+  -- ================= coach granted billing access
+  reset role;
+  update user_roles set can_view_finance = true where user_id = (select id from auth.users where email = 'mike@vegaselite.test');
+  perform t.act_as('mike@vegaselite.test');
+  perform t.check('coach with billing access reads memberships', (select count(*) from memberships) = 30);
+  begin
+    insert into membership_plans (organization_id, name, price_cents) values (a_org, 'Sneaky', 0);
+    perform t.check('coach with billing access cannot create plans', false);
+  exception when insufficient_privilege then
+    perform t.check('coach with billing access cannot create plans', true);
+  end;
+  reset role;
+  update user_roles set can_view_finance = false where user_id = (select id from auth.users where email = 'mike@vegaselite.test');
+
   -- ================= pilot tables: write-only, own org + self only
   perform t.act_as('keith@vegaselite.test');
   insert into usage_events (organization_id, user_id, role, name) values (a_org, auth.uid(), 'coach', 'login');

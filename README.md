@@ -17,8 +17,9 @@ This repo is an **MVP** meant to be put in front of 3–5 facility owners. It is
 ## Roles
 | Role | Can |
 |---|---|
-| owner / admin | everything in their organization (owner also manages roles) |
-| coach | see athletes + sessions, mark attendance, add notes, record assessments, edit notes/plan on own sessions. No finance unless `can_view_finance` |
+| owner | everything in their organization, plus facility settings and adding/removing admins |
+| admin | everything except facility settings and admin management |
+| coach | see athletes + sessions, mark attendance, add notes, record assessments, edit notes/plan on own sessions. No billing unless the owner/admin turns on "Can see billing" (read-only membership status) |
 | parent | only their own athletes: schedule, attendance, assessments, shareable notes, shared reports, own membership |
 
 ## Architecture

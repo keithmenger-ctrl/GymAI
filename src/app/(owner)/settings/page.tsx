@@ -2,6 +2,9 @@ import { requireAdmin } from '@/lib/auth'
 import { withUser } from '@/lib/db'
 import { billingMode } from '@/lib/billing/stripe'
 import { addLocation, updateOrganization } from '@/lib/actions/settings'
+import { removeAdmin } from '@/lib/actions/team'
+import { AddAdminForm } from '@/components/team/add-admin-form'
+import { ConfirmButton } from '@/components/form'
 import { ActionForm } from '@/components/form'
 import { Badge, Card, Field, Input, PageHeader, Select } from '@/components/ui'
 
@@ -9,10 +12,13 @@ export const metadata = { title: 'Settings' }
 
 export default async function SettingsPage() {
   const s = await requireAdmin()
-  const [locations, team] = await Promise.all([
+  const [locations, team, admins] = await Promise.all([
     withUser(s.userId, (q) => q<{ id: string; name: string; address: string | null }>('select id, name, address from locations order by name')),
     withUser(s.userId, (q) => q<{ role: string; n: number }>(
       `select role, count(*)::int as n from user_roles where organization_id = $1 group by role`, [s.orgId])),
+    withUser(s.userId, (q) => q<{ user_id: string; role: string; name: string | null; email: string | null }>(
+      `select r.user_id, r.role, p.full_name as name, p.email from user_roles r left join profiles p on p.id = r.user_id
+        where r.organization_id = $1 and r.role in ('owner','admin') order by r.role desc, p.full_name`, [s.orgId])),
   ])
   const count = (r: string) => team.find((t) => t.role === r)?.n ?? 0
   const zones = Intl.supportedValuesOf('timeZone').filter((z) => z.startsWith('America/') || z.startsWith('Pacific/Honolulu') || z === 'UTC')
@@ -51,6 +57,25 @@ export default async function SettingsPage() {
       </Card>
 
       <Card className="p-6">
+        <h2 className="mb-1 font-semibold">Owners &amp; admins</h2>
+        <p className="mb-4 text-sm text-muted">Admins can do everything except change facility settings and manage admins.</p>
+        <ul className="mb-5 divide-y divide-line text-sm">
+          {admins.map((a) => (
+            <li key={a.user_id} className="flex items-center justify-between gap-3 py-2">
+              <span><span className="font-medium">{a.name ?? a.email}</span> <span className="text-muted">· {a.email}</span></span>
+              <span className="flex items-center gap-2">
+                <span className="text-xs capitalize text-muted">{a.role}</span>
+                {s.role === 'owner' && a.role === 'admin' && (
+                  <ConfirmButton action={removeAdmin.bind(null, a.user_id)} label="Remove" confirm={`Remove ${a.name ?? a.email} as an admin?`} />
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+        {s.role === 'owner' && <AddAdminForm />}
+      </Card>
+
+      <Card className="p-6">
         <h2 className="mb-4 font-semibold">Access</h2>
         <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
           <div><dt className="text-muted">Owners/admins</dt><dd className="text-xl font-semibold">{count('owner') + count('admin')}</dd></div>
@@ -60,7 +85,7 @@ export default async function SettingsPage() {
         </dl>
         <p className="mt-4 text-xs text-muted">
           Coaches get app access from the Coaches page; parents from an athlete&apos;s profile. Coaches never see billing.
-          Adding more admins and per-coach finance access is not implemented yet.
+          Coaches can be allowed to see billing status from the Coaches page.
         </p>
       </Card>
     </div>

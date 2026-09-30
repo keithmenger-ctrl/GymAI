@@ -1,6 +1,7 @@
 import { requireAdmin } from '@/lib/auth'
 import { withUser } from '@/lib/db'
 import { createCoach, setCoachActive } from '@/lib/actions/coaches'
+import { setCoachFinance } from '@/lib/actions/team'
 import { ActionForm } from '@/components/form'
 import { InviteButton } from '@/components/athlete/invite-parent'
 import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, Textarea } from '@/components/ui'
@@ -9,7 +10,7 @@ export const metadata = { title: 'Coaches' }
 
 type CoachRow = {
   id: string; name: string; email: string | null; bio: string | null; active: boolean; has_login: boolean
-  sessions_week: number; sessions_today: number; programs: string[]
+  sessions_week: number; sessions_today: number; programs: string[]; can_finance: boolean
 }
 
 export default async function CoachesPage() {
@@ -17,6 +18,7 @@ export default async function CoachesPage() {
   const coaches = await withUser(s.userId, (q) =>
     q<CoachRow>(
       `select c.id, c.name, c.email, c.bio, c.active, c.profile_id is not null as has_login,
+              coalesce((select r.can_view_finance from user_roles r where r.user_id = c.profile_id), false) as can_finance,
               (select count(*)::int from sessions se where se.coach_id = c.id
                   and se.starts_at >= date_trunc('week', now() at time zone $1) at time zone $1
                   and se.starts_at <  (date_trunc('week', now() at time zone $1) + interval '7 days') at time zone $1) as sessions_week,
@@ -57,6 +59,17 @@ export default async function CoachesPage() {
                     <InviteButton id={c.id} hasLogin={c.has_login} kind="coach" />
                     <p className="mt-1 text-xs text-muted">{c.has_login ? 'Has app access' : 'No app access yet'}</p>
                   </div>
+                  {c.has_login && (
+                    <form action={setCoachFinance.bind(null, c.id, !c.can_finance)} className="mt-3">
+                      <label className="flex items-center gap-2 text-sm">
+                        <button role="switch" aria-checked={c.can_finance} aria-label={`${c.name} can see billing`}
+                          className={`relative h-6 w-10 rounded-full transition-colors ${c.can_finance ? 'bg-ink' : 'bg-stone-300'}`}>
+                          <span className={`absolute top-0.5 size-5 rounded-full bg-white transition-all ${c.can_finance ? 'left-[1.125rem]' : 'left-0.5'}`} />
+                        </button>
+                        Can see billing
+                      </label>
+                    </form>
+                  )}
                   <form action={setCoachActive.bind(null, c.id, !c.active)} className="mt-3">
                     <Button variant="ghost" size="sm">{c.active ? 'Mark inactive' : 'Reactivate'}</Button>
                   </form>

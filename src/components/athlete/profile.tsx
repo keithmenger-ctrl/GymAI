@@ -8,7 +8,7 @@ import { addMilestone, changeLevel } from '@/lib/actions/progress'
 import { withUser } from '@/lib/db'
 import { listReports } from '@/lib/queries/reports'
 import { GenerateReportButton } from '@/components/report/generate-button'
-import { fmtDate, fmtShortDate, initials, num, relativeDays } from '@/lib/format'
+import { fmtDate, fmtShortDate, initials, money, num, relativeDays } from '@/lib/format'
 import type { Session } from '@/lib/auth'
 import {
   assessmentSeries, athleteNotes, athleteTimeline, attendanceSummary, currentFocus, getAthlete,
@@ -49,6 +49,15 @@ export async function AthleteProfile({
     currentFocus(session, id),
     listReports(session, id),
   ])
+  // Membership: owners/admins, and coaches explicitly allowed to see billing. RLS returns nothing to anyone else.
+  const showMembership = viewer === 'admin' || (viewer === 'coach' && session.canViewFinance)
+  const memberships = showMembership
+    ? await withUser(session.userId, (q) =>
+        q<{ id: string; plan: string; price_cents: number; interval: string; status: string; next_billing_date: string | null }>(
+          `select m.id, mp.name as plan, mp.price_cents, mp.interval, m.status, m.next_billing_date::text as next_billing_date
+             from memberships m join membership_plans mp on mp.id = m.plan_id
+            where m.athlete_id = $1 order by (m.status = 'canceled'), m.created_at desc`, [id]))
+    : []
   const reportHref = (rid: string) =>
     viewer === 'admin' ? `/reports/${rid}` : viewer === 'coach' ? `/coach/reports/${rid}` : `/parent/reports/${rid}`
   if (!a) return null
@@ -235,6 +244,31 @@ export async function AthleteProfile({
                         <span className="min-w-0 truncate">{r.title}</span>
                         {viewer !== 'parent' && <Badge tone={r.status === 'shared' ? 'ok' : 'neutral'}>{r.status === 'shared' ? 'Shared' : 'Draft'}</Badge>}
                       </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
+          )}
+
+          {showMembership && (
+            <Section title="Membership" aside={viewer === 'admin' ? <Link href="/billing" className="text-sm text-muted hover:text-ink">Billing →</Link> : undefined}>
+              {memberships.length === 0 ? (
+                <p className="text-sm text-muted">No membership.</p>
+              ) : (
+                <ul className="space-y-3 text-sm">
+                  {memberships.map((m) => (
+                    <li key={m.id} className="flex items-start justify-between gap-3">
+                      <span>
+                        <span className="font-medium">{m.plan}</span>
+                        <span className="block text-xs text-muted">
+                          {money(m.price_cents)}/{m.interval === 'year' ? 'yr' : 'mo'}
+                          {m.next_billing_date && m.status !== 'canceled' ? ` · next ${fmtDate(m.next_billing_date)}` : ''}
+                        </span>
+                      </span>
+                      <Badge tone={m.status === 'active' ? 'ok' : m.status === 'past_due' ? 'bad' : m.status === 'canceled' ? 'neutral' : 'warn'}>
+                        {m.status === 'past_due' ? 'Past due' : m.status === 'incomplete' ? 'Awaiting payment' : m.status[0].toUpperCase() + m.status.slice(1)}
+                      </Badge>
                     </li>
                   ))}
                 </ul>

@@ -6,7 +6,8 @@ import { requireAdmin, requireRole } from '@/lib/auth'
 import { withServiceRole, withUser } from '@/lib/db'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { passwordLink } from '@/lib/links'
-import { emailHtml, mailEnabled, sendMail } from '@/lib/mail'
+import { emailHtml, orgMayEmail, sendMail } from '@/lib/mail'
+import { track } from '@/lib/track'
 
 export type TeamState = { error?: string; message?: string; link?: string } | undefined
 
@@ -29,14 +30,16 @@ export async function addAdmin(_: TeamState, fd: FormData): Promise<TeamState> {
     await q('insert into profiles (id, full_name, email) values ($1, $2, $3) on conflict (id) do nothing', [uid, p.data.name, email])
     await q(`insert into user_roles (user_id, organization_id, role, can_view_finance) values ($1, $2, 'admin', true)`, [uid, s.orgId])
   })
-  const link = await passwordLink(email, mailEnabled())
+  const willEmail = await orgMayEmail(s.orgId, s.isDemo)
+  const link = await passwordLink(email, willEmail)
   let message = `${p.data.name} was added as an admin. Share this one-time link so they can set a password.`
-  if (mailEnabled()) {
+  if (willEmail) {
     try {
       await sendMail(email, `You're now an admin of ${s.orgName} on AcademyOS`,
         `${s.fullName} added you as an admin of ${s.orgName}. Set your password (the link works once): ${link}`,
         emailHtml(`You're an admin of ${s.orgName}`, `${s.fullName} added you as an admin on AcademyOS. Set a password to get started.`, 'Set your password', link))
       message = `${p.data.name} was added as an admin and emailed a sign-in link.`
+      await track(s, 'email_sent', { kind: 'invite_admin' })
     } catch {
       message += ' (Email failed.)'
     }

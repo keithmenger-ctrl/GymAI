@@ -1,5 +1,5 @@
 // Forgot password + emailed invites, using the local SMTP sink (scripts/dev-smtp.mjs -> /tmp/academyos-mail).
-import { launch, login, check, done, BASE } from './lib.mjs'
+import { launch, check, done, BASE } from './lib.mjs'
 import fs from 'node:fs'
 
 const DIR = process.env.MAIL_DIR || '/tmp/academyos-mail'
@@ -18,23 +18,42 @@ async function waitMail(to, after, timeout = 15000) {
 const linkIn = (m) => m?.text?.match(/https?:\/\/\S+\/auth\/confirm\?\S+/)?.[0]
 const path = (p) => new URL(p.url()).pathname
 
-// ---------- forgot password (parent2)
+// ---------- forgot password (fresh account each run, so the per-address throttle never interferes)
+const who = `resetme${Date.now().toString().slice(-7)}@example.com`
+{
+  const s = await launch()
+  await s.page.goto(`${BASE}/signup`)
+  await s.page.fill('input[name=orgName]', 'Reset Test Academy')
+  await s.page.fill('input[name=fullName]', 'Reset Tester')
+  await s.page.fill('input[name=email]', who)
+  await s.page.fill('input[name=password]', 'original-pass-1')
+  await s.page.uncheck('input[name=demo]')
+  await Promise.all([s.page.waitForURL('**/dashboard'), s.page.click('button[type=submit]')])
+  await s.browser.close()
+}
 {
   const { browser, page, errors } = await launch({ width: 390, height: 844 })
   await page.goto(`${BASE}/login`)
   await page.click('a:text("Forgot password?")')
   await page.waitForURL('**/forgot-password')
   const seen = mailbox()
-  await page.fill('input[name=email]', 'parent5@vegaselite.test')
+  await page.fill('input[name=email]', who)
   await page.click('button[type=submit]')
   await page.waitForSelector('[role=status]')
   const generic = await page.innerText('[role=status]')
   check('generic confirmation shown', generic.includes('If that email has an AcademyOS account'))
-  const mail = await waitMail('parent5@vegaselite.test', seen)
+  const mail = await waitMail(who, seen)
   check('reset email delivered', Boolean(mail) && mail.subject === 'Reset your AcademyOS password')
   const link = linkIn(mail)
   check('email link uses APP_URL + token_hash', Boolean(link) && link.startsWith('http://localhost:3000/auth/confirm?token_hash='))
   check('html version has a button', mail?.html?.includes('Choose a new password'))
+  const seenT = mailbox()
+  await page.goto(`${BASE}/forgot-password`)
+  await page.fill('input[name=email]', who)
+  await page.click('button[type=submit]')
+  await page.waitForSelector('[role=status]')
+  await page.waitForTimeout(1500)
+  check('immediate repeat request is throttled (no second email)', mailbox().length === seenT.length)
 
   // unknown email: same message, no mail
   const seen2 = mailbox()
@@ -50,27 +69,33 @@ const path = (p) => new URL(p.url()).pathname
   await page.goto(link)
   await page.waitForURL('**/set-password')
   await page.fill('input[name=password]', 'a-brand-new-pass')
-  await Promise.all([page.waitForURL('**/parent'), page.click('button[type=submit]')])
-  check('link signs in and new password is set', path(page) === '/parent')
+  await Promise.all([page.waitForURL('**/dashboard'), page.click('button[type=submit]')])
+  check('link signs in and new password is set', path(page) === '/dashboard')
   const p2 = await (await browser.newContext()).newPage()
   await p2.goto(link)
   await p2.waitForURL('**/login**')
   check('used link rejected with a friendly message', (await p2.innerText('main')).includes('expired or was already used'))
   await p2.goto(`${BASE}/login`)
-  await p2.fill('input[name=email]', 'parent5@vegaselite.test')
+  await p2.fill('input[name=email]', who)
   await p2.fill('input[name=password]', 'a-brand-new-pass')
-  await Promise.all([p2.waitForURL('**/parent'), p2.click('button[type=submit]')])
-  check('can sign in with the new password', path(p2) === '/parent')
+  await Promise.all([p2.waitForURL('**/dashboard'), p2.click('button[type=submit]')])
+  check('can sign in with the new password', path(p2) === '/dashboard')
   check('no console errors (reset)', errors.length === 0, errors.join(' | ').slice(0, 300))
   await browser.close()
 }
 
-// ---------- emailed coach invite
+// ---------- emailed coach invite (from a real academy: demo academies never send invite email)
 {
   const { browser, page } = await launch()
-  await login(page, 'owner@vegaselite.test')
-  await page.goto(`${BASE}/coaches`)
   const stamp = Date.now().toString().slice(-6)
+  await page.goto(`${BASE}/signup`)
+  await page.fill('input[name=orgName]', `Real Academy ${stamp}`)
+  await page.fill('input[name=fullName]', 'Real Owner')
+  await page.fill('input[name=email]', `realowner${stamp}@example.com`)
+  await page.fill('input[name=password]', 'a-long-password')
+  await page.uncheck('input[name=demo]')
+  await Promise.all([page.waitForURL('**/dashboard'), page.click('button[type=submit]')])
+  await page.goto(`${BASE}/coaches`)
   const email = `coach${stamp}@example.com`
   await page.fill('form:has(button:text("Add coach")) input[name=name]', `Coach Mail${stamp}`)
   await page.fill('form:has(button:text("Add coach")) input[name=email]', email)
@@ -82,7 +107,7 @@ const path = (p) => new URL(p.url()).pathname
   await card.locator('text=Emailed to').waitFor()
   check('UI confirms the email was sent', true)
   const mail = await waitMail(email, seen)
-  check('invite email delivered with org name', mail?.subject === "You're invited to Vegas Elite Performance on AcademyOS")
+  check('invite email delivered with org name', mail?.subject === `You're invited to Real Academy ${stamp} on AcademyOS`)
   const shown = await card.locator('input[aria-label="Invite link"]').inputValue()
   check('emailed link == link shown to owner (one token)', linkIn(mail) === shown)
   const p2 = await (await browser.newContext()).newPage()

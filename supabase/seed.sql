@@ -12,7 +12,7 @@ begin
     email_change_token_current, phone_change, phone_change_token, reauthentication_token)
   values ('00000000-0000-0000-0000-000000000000', v_id, 'authenticated', 'authenticated', p_email,
     crypt('academyos-demo', gen_salt('bf')), now(),
-    '{"provider":"email","providers":["email"]}', jsonb_build_object('full_name', p_name),
+    '{"provider":"email","providers":["email"]}', jsonb_build_object('full_name', p_name, 'demo', true),
     now(), now(), '', '', '', '', '', '', '', '');
   insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
   values (gen_random_uuid(), v_id, v_id::text,

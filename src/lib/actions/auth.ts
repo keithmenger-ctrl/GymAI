@@ -28,6 +28,7 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
   const email = str(fd, 'email')
   const password = str(fd, 'password')
   if (!orgName || !fullName || !email) return { error: 'Please fill in every field.' }
+  if (orgName.length > 120) return { error: 'Facility name must be 120 characters or fewer.' }
   if (password.length < 8) return { error: 'Password must be at least 8 characters.' }
 
   const supabase = await supabaseServer()
@@ -60,6 +61,7 @@ export async function createOrganization(_: FormState, fd: FormData): Promise<Fo
   const orgName = str(fd, 'orgName')
   const fullName = str(fd, 'fullName')
   if (!orgName || !fullName) return { error: 'Please fill in every field.' }
+  if (orgName.length > 120) return { error: 'Facility name must be 120 characters or fewer.' }
   try {
     await withUser(data.user.id, (q) => q('select create_organization($1, $2)', [orgName, fullName]))
   } catch {

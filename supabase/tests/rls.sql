@@ -189,6 +189,35 @@ begin
   reset role;
   update user_roles set can_view_finance = false where user_id = (select id from auth.users where email = 'mike@vegaselite.test');
 
+  -- ================= security hardening (0010)
+  perform t.act_as('owner@vegaselite.test');
+  begin
+    update organizations set is_demo = not is_demo where id = a_org;
+    perform t.check('owner cannot flip is_demo', false);
+  exception when insufficient_privilege then
+    perform t.check('owner cannot flip is_demo', true);
+  end;
+  update organizations set name = name where id = a_org;
+  perform t.check('owner can still update org name', true);
+  perform t.check('staff read internal athlete notes via function',
+    (select athlete_internal_notes(id) from athletes where first_name = 'Johnny') is not null);
+  perform t.act_as('parent1@vegaselite.test');
+  begin
+    perform notes from athletes limit 1;
+    perform t.check('parent cannot select athletes.notes', false);
+  exception when insufficient_privilege then
+    perform t.check('parent cannot select athletes.notes', true);
+  end;
+  begin
+    perform notes from sessions limit 1;
+    perform t.check('parent cannot select sessions.notes', false);
+  exception when insufficient_privilege then
+    perform t.check('parent cannot select sessions.notes', true);
+  end;
+  perform t.check('parent gets null from internal-notes function',
+    (select athlete_internal_notes(id) from athletes limit 1) is null);
+  perform t.check('parent still reads own athlete row', (select count(*) from athletes) = 1);
+
   -- ================= pilot tables: write-only, own org + self only
   perform t.act_as('keith@vegaselite.test');
   insert into usage_events (organization_id, user_id, role, name) values (a_org, auth.uid(), 'coach', 'login');

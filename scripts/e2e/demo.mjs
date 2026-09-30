@@ -35,6 +35,11 @@ check('parent view: David Alvarez sees Johnny', t.includes('Johnny') && !t.inclu
 // back to owner = the prospect's own account
 await Promise.all([page.waitForURL('**/dashboard'), page.click('button:text-is("Owner")')])
 check('back to owner (the prospect)', (await page.innerText('header')).includes('Pat Prospect'))
+// demo academies never send invite email (anti-abuse); the link is still shown
+await page.goto(`${BASE}/athletes?q=Johnny`); await page.click('tbody tr a'); await page.waitForURL(/athletes\//)
+await page.click('button:has-text("New sign-in link"), button:has-text("Invite to parent portal")')
+await page.locator('input[aria-label="Invite link"]').waitFor()
+check('demo academy: invite link shown, no email sent', !(await page.innerText('main')).includes('Emailed to'))
 check('no console errors', errors.length === 0, errors.join(' | ').slice(0, 300))
 await browser.close()
 done()

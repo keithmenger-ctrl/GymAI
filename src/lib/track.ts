@@ -4,7 +4,7 @@ import { withUser } from '@/lib/db'
 
 export type EventName =
   | 'login' | 'attendance_marked' | 'attendance_bulk' | 'note_added' | 'assessments_recorded'
-  | 'report_generated' | 'report_shared' | 'athletes_imported' | 'demo_created' | 'session_created'
+  | 'report_generated' | 'report_shared' | 'athletes_imported' | 'demo_created' | 'session_created' | 'email_sent'
 
 /**
  * Records a usage event for the pilot readout. Never throws: analytics must not break the action

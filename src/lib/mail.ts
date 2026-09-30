@@ -1,5 +1,6 @@
 import 'server-only'
 import nodemailer, { type Transporter } from 'nodemailer'
+import { withServiceRole } from '@/lib/db'
 
 /**
  * Transactional email over SMTP (any provider: Resend, Postmark, SES, Gmail...).
@@ -30,4 +31,20 @@ export function emailHtml(heading: string, body: string, cta: string, url: strin
 <a href="${esc(url)}" style="display:inline-block;background:#0b0f14;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600">${esc(cta)}</a>
 <p style="margin:24px 0 0;font-size:12px;color:#6b7280">Or paste this link into your browser: ${esc(url)}<br>The link works once.</p>
 </td></tr></table></td></tr></table></body></html>`
+}
+
+export const ORG_DAILY_EMAIL_CAP = 50
+
+/**
+ * Abuse guard for emails an academy sends to arbitrary addresses (invites): none from demo academies
+ * (anyone can create one), and at most ORG_DAILY_EMAIL_CAP per academy per 24h. The on-screen link
+ * still works when this says no.
+ */
+export async function orgMayEmail(orgId: string, isDemo: boolean) {
+  if (!mailEnabled() || isDemo) return false
+  const [r] = await withServiceRole((q) =>
+    q<{ n: number }>(
+      `select count(*)::int as n from usage_events
+        where organization_id = $1 and name = 'email_sent' and created_at > now() - interval '24 hours'`, [orgId]))
+  return r.n < ORG_DAILY_EMAIL_CAP
 }

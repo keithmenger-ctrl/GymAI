@@ -130,7 +130,7 @@ export const getSessionDetail = (s: Session, id: string) =>
               to_char(s.ends_at at time zone $2, 'HH24:MI') as end_local,
               s.program_id, p.name as program, s.level_id, l.name as level,
               s.coach_id, c.name as coach, c.profile_id as coach_profile_id,
-              s.location_id, loc.name as location, s.max_athletes, s.session_plan, s.focus, s.notes,
+              s.location_id, loc.name as location, s.max_athletes, s.session_plan, s.focus, session_internal_notes(s.id) as notes,
               s.curriculum_item_id,
               case when ci.id is null then null else json_build_object(
                 'week_number', ci.week_number, 'title', ci.title, 'objectives', ci.objectives,

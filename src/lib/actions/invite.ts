@@ -4,7 +4,8 @@ import { requireAdmin } from '@/lib/auth'
 import { withServiceRole, withUser } from '@/lib/db'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { passwordLink } from '@/lib/links'
-import { emailHtml, mailEnabled, sendMail } from '@/lib/mail'
+import { emailHtml, orgMayEmail, sendMail } from '@/lib/mail'
+import { track } from '@/lib/track'
 
 export type InviteResult = { link?: string; error?: string; emailedTo?: string; emailError?: string }
 
@@ -42,9 +43,10 @@ async function invite(table: 'guardians' | 'coaches', role: 'parent' | 'coach', 
       })
     }
     // One link for both: generating a second recovery link would invalidate the first.
-    const url = await passwordLink(person.email, mailEnabled())
+    const willEmail = await orgMayEmail(s.orgId, s.isDemo)
+    const url = await passwordLink(person.email, willEmail)
     const result: InviteResult = { link: url }
-    if (mailEnabled()) {
+    if (willEmail) {
       try {
         const [org] = await withUser(s.userId, (q) => q<{ name: string }>('select name from organizations where id = $1', [s.orgId]))
         const who = role === 'coach' ? 'the coach app' : 'the parent portal'
@@ -52,6 +54,7 @@ async function invite(table: 'guardians' | 'coaches', role: 'parent' | 'coach', 
           `${org.name} invited you to ${who}. Set your password here (the link works once): ${url}`,
           emailHtml(`You're invited to ${org.name}`, `${org.name} invited you to ${who} on AcademyOS. Set a password to get started.`, 'Set your password', url))
         result.emailedTo = person.email
+        await track(s, 'email_sent', { kind: `invite_${role}` })
       } catch (e) {
         result.emailError = e instanceof Error ? e.message : 'Email could not be sent.'
       }

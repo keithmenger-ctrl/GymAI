@@ -7,8 +7,8 @@ same thing on hosted Supabase and Vercel. Items marked **verify** could not be e
 1. Create a project (region close to your facilities). Save the database password.
 2. SQL editor: run `supabase/migrations/0001` … `0008` in order. Do **not** run `supabase/tests/*` stub files; Supabase
    already has the `auth` schema and the `anon` / `authenticated` roles.
-3. Optional shared demo org: run `supabase/seed.sql` (creates "Vegas Elite Performance" and the `@vegaselite.test` logins,
-   password `academyos-demo`). Prospects don't need it: signup creates their own demo academy.
+3. Do **not** run `supabase/seed.sql` on production: its logins use a publicly documented password. Use it only on a
+   separate staging/demo project. Prospects don't need it: signup creates their own demo academy.
 4. Authentication → URL configuration: Site URL = your production URL; add `https://<domain>/auth/confirm` to redirect URLs.
 5. Authentication → Providers → Email: decide on "Confirm email". If on, new owners finish setup at `/onboarding` after
    confirming (already handled).
@@ -52,6 +52,15 @@ BASE_URL=https://<domain> node scripts/e2e/demo.mjs     # signup with demo data 
 ```
 Most other suites assume the shared seed (`supabase/seed.sql`); `pilot.mjs`, `phase12.mjs` and `stripe-webhook.mjs` also
 need direct database access (`DATABASE_URL`). Run the RLS test suite only against a throwaway database.
+
+## Security notes
+- Supabase's REST API exposes the `public` schema to every signed-in user, so RLS and grants are the real boundary.
+  Internal notes (`athletes.notes`, `sessions.notes`) are excluded from the `authenticated` column grants and read by
+  staff through `athlete_internal_notes()` / `session_internal_notes()`. **New columns on `athletes` or `sessions`
+  must be added to the grant lists in migration 0010**, or nobody can read them.
+- `organizations.is_demo` can only be changed with the service role.
+- Invite emails: none from demo academies, max 50 per academy per 24h (links still shown on screen).
+- Security headers (no framing, nosniff, referrer policy) are set in `next.config.ts`.
 
 ## 6. Before real families use it
 - Email: set `SMTP_URL`, `MAIL_FROM` and `APP_URL` (above). AcademyOS sends its own emails (invites, password reset) with

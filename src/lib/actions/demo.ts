@@ -14,14 +14,21 @@ export async function switchDemoView(role: Extract<Role, 'owner' | 'coach' | 'pa
   const s = await getSession()
   if (!s) redirect('/login')
   if (!s.isDemo || !['owner', 'coach', 'parent'].includes(role)) redirect(homeFor(s.role))
-  const [target] = await withServiceRole((q) =>
-    q<{ email: string }>(
+  // Defense in depth (is_demo is also write-protected in the DB): coach/parent targets must be accounts
+  // created as demo users, and switching to the owner is only allowed *from* a demo account.
+  const target = await withServiceRole(async (q) => {
+    const [me] = await q<{ demo: boolean }>(
+      `select coalesce(raw_user_meta_data ->> 'demo', 'false') = 'true' as demo from auth.users where id = $1`, [s.userId])
+    if (role === 'owner' && !me?.demo && s.role !== 'owner') return undefined
+    const [t] = await q<{ email: string }>(
       `select u.email from user_roles r join auth.users u on u.id = r.user_id
         where r.organization_id = $1 and r.role = $2
+          and ($2 = 'owner' or coalesce(u.raw_user_meta_data ->> 'demo', 'false') = 'true')
         order by u.email limit 1`,
       [s.orgId, role],
-    ),
-  )
+    )
+    return t
+  })
   if (!target) redirect(homeFor(s.role))
   if (target.email !== s.email) {
     const { data, error } = await supabaseAdmin().auth.admin.generateLink({ type: 'magiclink', email: target.email })

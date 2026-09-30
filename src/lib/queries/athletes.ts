@@ -77,7 +77,7 @@ export const getAthlete = (s: Session, id: string) =>
     const rows = await q<AthleteDetail>(
       `select a.id, a.first_name, a.last_name, a.date_of_birth::text as date_of_birth,
               case when a.date_of_birth is null then null else date_part('year', age(a.date_of_birth))::int end as age,
-              a.sport_id, sp.name as sport, a.position, a.school_team, a.status, a.join_date::text as join_date, a.notes,
+              a.sport_id, sp.name as sport, a.position, a.school_team, a.status, a.join_date::text as join_date, athlete_internal_notes(a.id) as notes,
               a.current_program_id, a.current_level_id, p.name as program_name, l.name as level_name,
               coalesce((select json_agg(json_build_object('id', g.id, 'name', g.name, 'email', g.email,
                                                           'phone', g.phone, 'has_login', g.profile_id is not null)

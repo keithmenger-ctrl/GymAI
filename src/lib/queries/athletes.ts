@@ -194,8 +194,12 @@ export type TimelineEvent = { id: string; kind: string; title: string; occurred_
 export const athleteTimeline = (s: Session, athleteId: string, limit = 40) =>
   withUser(s.userId, (q) =>
     q<TimelineEvent>(
-      `select id, kind, title, occurred_at from athlete_progress_events
-        where athlete_id = $1 order by occurred_at desc, id limit $2`,
+      // Staff see the note text; RLS on coach_notes only lets parents join shareable notes
+      // (and parents never see private note events at all), so the placeholder title stays as a fallback.
+      `select e.id, e.kind, coalesce(n.body, e.title) as title, e.occurred_at
+         from athlete_progress_events e
+         left join coach_notes n on e.kind = 'note' and n.id = (e.payload ->> 'note_id')::uuid
+        where e.athlete_id = $1 order by e.occurred_at desc, e.id limit $2`,
       [athleteId, limit],
     ),
   )

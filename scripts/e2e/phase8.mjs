@@ -16,6 +16,7 @@ let johnnyUrl, otherAthleteUrl
   await page.click('button:text("Add milestone")')
   await page.waitForSelector(`text=Milestone ${stamp}`)
   check('milestone appears on timeline', true)
+  check('staff timeline shows note text, not placeholder', !(await page.innerText('main')).includes('Coach note added'))
 
   // a different athlete (not parent1's) for the isolation check later
   await page.goto(`${BASE}/athletes?q=Marcus`)

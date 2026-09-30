@@ -261,7 +261,8 @@ begin
         select v_org, sa.athlete_id, v_sess, coach_profiles[tpl.p], note_bodies[k2], shareable_flags[k2], v_ends
           from (select sa2.athlete_id, 1 + floor(random() * 10)::int as k2, random() as r
                   from session_athletes sa2 where sa2.session_id = v_sess) sa
-         where sa.r < 0.13;
+         where sa.r < 0.13
+           and not exists (select 1 from coach_notes cn where cn.athlete_id = sa.athlete_id and cn.body = note_bodies[sa.k2]);
         if random() < 0.25 then
           insert into coach_notes (organization_id, athlete_id, session_id, author_id, body, shareable, created_at)
           values (v_org, null, v_sess, coach_profiles[tpl.p], 'Good energy from the group. Focus was ' ||

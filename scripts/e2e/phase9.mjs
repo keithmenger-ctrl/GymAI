@@ -31,7 +31,8 @@ let reportUrl
   txt = await page.innerText('main')
   check('edit: persisted + preview updated', txt.includes(`outstanding this block. ${stamp}`) && txt.includes('Deceleration and change of direction.'))
 
-  // validation
+  // validation (wait for hydration after the reload above, or the click races React)
+  await page.waitForLoadState('networkidle')
   await page.fill('textarea[name=summary]', '   ')
   await page.evaluate(() => document.querySelector('textarea[name=summary]').removeAttribute('required'))
   await page.click('button:text-is("Save")')

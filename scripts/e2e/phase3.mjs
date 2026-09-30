@@ -13,7 +13,10 @@ check('list shows seeded athletes (>=30)', before >= 30, String(before))
 await page.goto(`${BASE}/athletes?q=Johnny`)
 check('search narrows to 1', (await page.locator('tbody tr').count()) === 1)
 await page.goto(`${BASE}/athletes?status=trial`)
-check('status filter (trial)', (await page.locator('tbody tr').count()) === 1)
+{
+  const statuses = await page.locator('tbody tr td:nth-child(3)').allInnerTexts()
+  check('status filter (trial): only trial athletes', statuses.length >= 1 && statuses.every((x) => /trial/i.test(x)), statuses.join(','))
+}
 await page.goto(`${BASE}/athletes?q=zzzzzz`)
 check('empty state on no match', (await page.innerText('main')).includes('No athletes match'))
 

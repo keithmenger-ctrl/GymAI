@@ -59,7 +59,18 @@ su postgres -c "psql -q academyos_test -f supabase/tests/rls.sql"   # 49 tenant/
 - [x] 11. Stripe memberships (plans, assign, cancel, past-due; Stripe Checkout + billing portal + webhook sync; dev mode with labelled payment simulation; settings: facility, timezone, locations)
 - [x] 12. AI queries (Assistant page: 6 predefined read-only queries, keyword routing with athlete-name matching, Claude-drafted text when ANTHROPIC_API_KEY is set, human-confirmed save as draft)
 
-Anything not checked above is **not implemented**.
+### After the 12 phases
+- [x] Per-prospect demo academies with Owner / Coach / Parent view switcher
+- [x] CSV import of athletes + parents
+- [x] Pilot feedback button, usage events, weekly readout
+- [x] Upcoming rosters follow level/status changes
+- [x] Forgot password + emailed invites (any SMTP provider)
+- [x] Admins + per-coach "Can see billing"
+- [x] Assessment sparklines (profile + report), "Test due" chips
+- [x] 404 / error / loading states
+- [x] Security review fixes (see docs/DEPLOY.md → Security notes)
+
+Anything not checked above is **not implemented**. Known limits: no native apps, no charts beyond sparklines, no emailed/PDF-attached reports (parents open them in the portal and can print/save as PDF), live Stripe/Claude/hosted Supabase not exercised from the build sandbox.
 
 ## Email
 Invites (parents, coaches, admins) and "Forgot password?" send one-time sign-in links when `SMTP_URL`, `MAIL_FROM` and `APP_URL` are set (any SMTP provider). The same link is always shown to the owner as a fallback. Locally, `scripts/dev-up.sh` starts an SMTP sink that stores mail in `/tmp/academyos-mail`.

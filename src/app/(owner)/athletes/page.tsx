@@ -21,14 +21,14 @@ export default async function AthletesPage({ searchParams }: PageProps<'/athlete
       <PageHeader
         title="Athletes"
         subtitle={`${athletes.length} ${filtered ? 'matching' : 'total'}`}
-        actions={<Link href="/athletes/new" className={buttonClass()}>Add athlete</Link>}
+        actions={<><Link href="/athletes/import" className={buttonClass('secondary')}>Import CSV</Link><Link href="/athletes/new" className={buttonClass()}>Add athlete</Link></>}
       />
       <AthleteFilters {...f} programs={programs} />
       {athletes.length === 0 ? (
         <EmptyState
           title={filtered ? 'No athletes match those filters' : 'No athletes yet'}
           body={filtered ? 'Try clearing the search or filters.' : 'Add your first athlete to start building their development record.'}
-          action={!filtered && <Link href="/athletes/new" className={buttonClass()}>Add athlete</Link>}
+          action={!filtered && <div className="flex gap-2"><Link href="/athletes/import" className={buttonClass('secondary')}>Import CSV</Link><Link href="/athletes/new" className={buttonClass()}>Add athlete</Link></div>}
         />
       ) : (
         <Card className="overflow-x-auto">

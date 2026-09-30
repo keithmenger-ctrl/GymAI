@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { requireAdmin, requireStaff } from '@/lib/auth'
 import { withUser, type Q } from '@/lib/db'
 import type { FormState } from './auth'
+import { track } from '@/lib/track'
 
 const blank = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v)
 const opt = <T extends z.ZodType>(s: T) => z.preprocess(blank, s.optional())
@@ -96,6 +97,7 @@ export async function createSession(_: FormState, fd: FormData): Promise<FormSta
     return { error: e instanceof Error ? e.message : 'Could not create the session.' }
   }
   revalidatePath('/schedule')
+  await track(s, 'session_created', { repeat_weeks: d.repeat_weeks })
   redirect(`/schedule/${firstId}`)
 }
 
@@ -190,6 +192,7 @@ export async function setAttendance(sessionId: string, athleteId: string, status
         ),
   )
   revalidateSession(sessionId)
+  await track(s, 'attendance_marked', { status })
   return { ok: true }
 }
 
@@ -206,6 +209,7 @@ export async function markRestPresent(sessionId: string) {
     ),
   )
   revalidateSession(sessionId)
+  await track(s, 'attendance_bulk')
 }
 
 const noteSchema = z.object({
@@ -232,6 +236,7 @@ export async function addSessionNote(sessionId: string, _: FormState, fd: FormDa
   )
   if (!r.length) return { error: 'Could not save the note.' }
   revalidateSession(sessionId)
+  await track(s, 'note_added', { athlete: Boolean(d.athlete_id), shareable: d.shareable })
   if (d.athlete_id) {
     revalidatePath(`/athletes/${d.athlete_id}`)
     revalidatePath(`/coach/athletes/${d.athlete_id}`)

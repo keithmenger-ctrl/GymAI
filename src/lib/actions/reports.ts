@@ -7,6 +7,7 @@ import { requireStaff } from '@/lib/auth'
 import { withUser } from '@/lib/db'
 import { buildSnapshot, draftSections } from '@/lib/queries/reports'
 import type { FormState } from './auth'
+import { track } from '@/lib/track'
 
 const editorPath = (role: string, id: string) => (role === 'coach' ? `/coach/reports/${id}` : `/reports/${id}`)
 
@@ -34,6 +35,7 @@ export async function generateReport(athleteId: string) {
     ),
   )
   refresh(athleteId, r.id)
+  await track(s, 'report_generated')
   redirect(editorPath(s.role, r.id))
 }
 
@@ -68,7 +70,10 @@ export async function setReportShared(id: string, shared: boolean) {
       [id, shared ? 'shared' : 'draft'],
     ),
   )
-  if (r.length) refresh(r[0].athlete_id, id)
+  if (r.length) {
+    refresh(r[0].athlete_id, id)
+    if (shared) await track(s, 'report_shared')
+  }
 }
 
 export async function deleteReport(id: string) {

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/auth'
 import { withUser } from '@/lib/db'
 import { commitImport, previewImport, type ImportPreview } from '@/lib/import/athletes'
+import { track } from '@/lib/track'
 
 export type ImportState = (ImportPreview & { text: string; imported?: number }) | undefined
 
@@ -40,5 +41,6 @@ export async function commitAthleteImport(_: ImportState, fd: FormData): Promise
   })
   revalidatePath('/athletes')
   revalidatePath('/dashboard')
+  if (result.imported) await track(s, 'athletes_imported', { count: result.imported })
   return { ...result, text }
 }

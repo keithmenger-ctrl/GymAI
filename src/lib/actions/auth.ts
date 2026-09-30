@@ -5,6 +5,7 @@ import { supabaseServer } from '@/lib/supabase/server'
 import { withUser } from '@/lib/db'
 import { getSession, homeFor } from '@/lib/auth'
 import { provisionDemo } from '@/lib/demo'
+import { track } from '@/lib/track'
 
 export type FormState = { error?: string; message?: string } | undefined
 
@@ -15,6 +16,7 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
   const { error } = await supabase.auth.signInWithPassword({ email: str(fd, 'email'), password: str(fd, 'password') })
   if (error) return { error: 'Incorrect email or password.' }
   const s = await getSession()
+  if (s) await track(s, 'login')
   redirect(s ? homeFor(s.role) : '/onboarding')
 }
 
@@ -38,6 +40,8 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
   if (fd.get('demo') === 'on') {
     try {
       await provisionDemo(org.id)
+      const s = await getSession()
+      if (s) await track(s, 'demo_created')
     } catch (e) {
       // The academy itself exists; only the sample data failed. Let the owner in rather than block signup.
       console.error('Demo data provisioning failed', e)

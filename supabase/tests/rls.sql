@@ -175,6 +175,26 @@ begin
   perform t.check('parent sees shared report only',
     (select count(*) from progress_reports) = 1 and (select count(*) from progress_reports where status = 'draft') = 0);
 
+  -- ================= pilot tables: write-only, own org + self only
+  perform t.act_as('keith@vegaselite.test');
+  insert into usage_events (organization_id, user_id, role, name) values (a_org, auth.uid(), 'coach', 'login');
+  insert into feedback (organization_id, user_id, role, body) values (a_org, auth.uid(), 'coach', 'love it');
+  perform t.check('staff can write own usage event + feedback', true);
+  perform t.check('usage events are not readable in-app', (select count(*) from usage_events) = 0);
+  perform t.check('feedback is not readable in-app', (select count(*) from feedback) = 0);
+  begin
+    insert into usage_events (organization_id, user_id, name) values (b_org, auth.uid(), 'login');
+    perform t.check('cannot log events into another org', false);
+  exception when insufficient_privilege then
+    perform t.check('cannot log events into another org', true);
+  end;
+  begin
+    insert into feedback (organization_id, user_id, body) values (a_org, (select id from auth.users where email = 'owner@vegaselite.test'), 'spoof');
+    perform t.check('cannot submit feedback as someone else', false);
+  exception when insufficient_privilege then
+    perform t.check('cannot submit feedback as someone else', true);
+  end;
+
   -- anonymous: nothing
   reset role;
   perform set_config('request.jwt.claim.sub', '', true);

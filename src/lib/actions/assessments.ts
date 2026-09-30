@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { requireAdmin, requireStaff } from '@/lib/auth'
 import { withUser } from '@/lib/db'
 import type { FormState } from './auth'
+import { track } from '@/lib/track'
 
 const typeSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -73,6 +74,7 @@ export async function recordResults(_: RecordState, fd: FormData): Promise<Recor
       [typeId.data, date.data, s.userId, entries.map((e) => e[0]), entries.map((e) => e[1])],
     ),
   )
+  await track(s, 'assessments_recorded', { count: inserted.length })
   revalidatePath('/assessments')
   revalidatePath('/coach/assessments')
   for (const [id] of entries) {

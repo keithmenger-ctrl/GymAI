@@ -1,32 +1,20 @@
 'use server'
 
-import { headers } from 'next/headers'
 import { requireAdmin } from '@/lib/auth'
 import { withServiceRole, withUser } from '@/lib/db'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { passwordLink } from '@/lib/links'
+import { emailHtml, mailEnabled, sendMail } from '@/lib/mail'
 
-export type InviteResult = { link?: string; error?: string }
-
-async function origin() {
-  const h = await headers()
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000'
-  const proto = h.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https')
-  return `${proto}://${host}`
-}
-
-/** One-time link that signs the invitee in and sends them to set a password. */
-async function passwordLink(email: string) {
-  const { data, error } = await supabaseAdmin().auth.admin.generateLink({ type: 'recovery', email })
-  if (error || !data.properties?.hashed_token) throw new Error(error?.message ?? 'Could not create link')
-  return `${await origin()}/auth/confirm?token_hash=${data.properties.hashed_token}&type=recovery&next=/set-password`
-}
+export type InviteResult = { link?: string; error?: string; emailedTo?: string; emailError?: string }
 
 type Invitee = { id: string; name: string; email: string | null; profile_id: string | null }
 
 /**
  * Creates an auth user for a guardian/coach record (if it has none), assigns the role in this org,
  * links the record, and returns a one-time set-password link. Idempotent: an already-linked
- * person just gets a fresh link. Email delivery is not part of the MVP; the owner shares the link.
+ * person just gets a fresh link. The link is always shown to the owner; when SMTP is configured the
+ * same link is also emailed.
  */
 async function invite(table: 'guardians' | 'coaches', role: 'parent' | 'coach', id: string): Promise<InviteResult> {
   const s = await requireAdmin()
@@ -53,7 +41,22 @@ async function invite(table: 'guardians' | 'coaches', role: 'parent' | 'coach', 
         await q(`update ${table} set profile_id = $1 where id = $2 and organization_id = $3`, [uid, person.id, s.orgId])
       })
     }
-    return { link: await passwordLink(person.email) }
+    // One link for both: generating a second recovery link would invalidate the first.
+    const url = await passwordLink(person.email, mailEnabled())
+    const result: InviteResult = { link: url }
+    if (mailEnabled()) {
+      try {
+        const [org] = await withUser(s.userId, (q) => q<{ name: string }>('select name from organizations where id = $1', [s.orgId]))
+        const who = role === 'coach' ? 'the coach app' : 'the parent portal'
+        await sendMail(person.email, `You're invited to ${org.name} on AcademyOS`,
+          `${org.name} invited you to ${who}. Set your password here (the link works once): ${url}`,
+          emailHtml(`You're invited to ${org.name}`, `${org.name} invited you to ${who} on AcademyOS. Set a password to get started.`, 'Set your password', url))
+        result.emailedTo = person.email
+      } catch (e) {
+        result.emailError = e instanceof Error ? e.message : 'Email could not be sent.'
+      }
+    }
+    return result
   } catch (e) {
     return { error: e instanceof Error ? e.message : 'Could not create the invite.' }
   }

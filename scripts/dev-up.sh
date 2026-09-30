@@ -43,13 +43,17 @@ if [ "${1:-}" = "--reset" ] || ! su postgres -c "psql -Atc \"select 1 from pg_da
   pkill -x gotrue 2>/dev/null || true
   psql_pg -c "\"alter user postgres password 'postgres'\"" -c "\"drop database if exists $DB with (force)\"" -c "\"create database $DB\""
   psql_pg $DB -f "$ROOT/supabase/tests/roles_stub.sql"
-  (set -a; . /tmp/gotrue.env; set +a; cd "$GOTRUE_SRC" && "$GOTRUE_BIN" migrate)
+  (set -a; . /tmp/gotrue.env; set +a; cd "$GOTRUE_SRC" && "$GOTRUE_BIN" migrate > /tmp/gotrue-migrate.log 2>&1)
   for f in "$ROOT"/supabase/migrations/*.sql "$ROOT"/supabase/seed.sql; do psql_pg $DB -f "$f" >/dev/null; done
 fi
 
 if ! curl -sf -m 2 localhost:9999/health >/dev/null; then
   echo ">> starting GoTrue on :9999"
-  (set -a; . /tmp/gotrue.env; set +a; cd "$GOTRUE_SRC" && setsid nohup "$GOTRUE_BIN" serve > /tmp/gotrue.log 2>&1 < /dev/null &)
+  (set -a; . /tmp/gotrue.env; set +a; cd "$GOTRUE_SRC" && setsid -f "$GOTRUE_BIN" serve > /tmp/gotrue.log 2>&1 < /dev/null)
   for _ in $(seq 1 20); do curl -sf -m 2 localhost:9999/health >/dev/null && break; sleep 1; done
+fi
+if ! (exec 3<>/dev/tcp/127.0.0.1/2525) 2>/dev/null; then
+  echo ">> starting dev SMTP sink on :2525 (mail stored in /tmp/academyos-mail)"
+  (cd "$ROOT" && setsid -f node scripts/dev-smtp.mjs > /tmp/dev-smtp.log 2>&1 < /dev/null)
 fi
 echo ">> ready. Next: cp .env.example .env.local (see README 'Local development'), then npm run dev"

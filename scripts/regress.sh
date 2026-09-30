@@ -5,7 +5,7 @@ set -u
 cd "$(dirname "$0")/.."
 fail=0
 timeout 280 bash scripts/dev-up.sh --reset > /tmp/devup.log 2>&1 || { echo "dev-up failed"; exit 1; }
-for t in phase2 phase3 phase4 phase5 phase7 phase8 phase9 phase10 phase11 phase12 demo import pilot rosters ${EXTRA_SUITES:-}; do
+for t in phase2 phase3 phase4 phase5 phase7 phase8 phase9 phase10 phase11 phase12 demo import pilot rosters email ${EXTRA_SUITES:-}; do
   if node "scripts/e2e/$t.mjs" > "/tmp/e2e-$t.log" 2>&1; then echo "ok   $t"; else echo "FAIL $t (see /tmp/e2e-$t.log)"; fail=1; fi
 done
 bash supabase/tests/reset.sh > /tmp/rls-reset.log 2>&1

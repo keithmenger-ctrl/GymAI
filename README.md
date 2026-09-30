@@ -60,6 +60,9 @@ su postgres -c "psql -q academyos_test -f supabase/tests/rls.sql"   # 49 tenant/
 
 Anything not checked above is **not implemented**.
 
+## Email
+Invites (parents, coaches, admins) and "Forgot password?" send one-time sign-in links when `SMTP_URL`, `MAIL_FROM` and `APP_URL` are set (any SMTP provider). The same link is always shown to the owner as a fallback. Locally, `scripts/dev-up.sh` starts an SMTP sink that stores mail in `/tmp/academyos-mail`.
+
 ## Importing athletes
 Athletes → **Import CSV** (owners/admins). Download the template or use any export with recognizable headers (e.g. "First Name", "DOB", "Parent Email"; unknown columns are ignored and listed). Dates can be `YYYY-MM-DD` or `M/D/YYYY`. Every row is validated in a preview (bad dates, unknown program/level, invalid emails, duplicates) before anything is saved. The import then re-parses the file server-side, imports only valid rows in one transaction, reuses parents by email, creates unknown sports, and skips athletes already in AcademyOS (same name, and matching or missing birthdate), so re-importing a file is safe.
 
@@ -89,4 +92,4 @@ See [docs/DEPLOY.md](docs/DEPLOY.md) (Supabase + Vercel + Stripe checklist).
 ## Local development
 Against a real Supabase project: copy `.env.example` to `.env.local`, fill it in, run the SQL in `supabase/migrations` then `supabase/seed.sql` (SQL editor or `supabase db push`), `npm install && npm run dev`.
 
-Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`, `node scripts/e2e/phase4.mjs`, `node scripts/e2e/phase5.mjs`, `node scripts/e2e/phase7.mjs`, `node scripts/e2e/phase8.mjs`, `node scripts/e2e/phase9.mjs`, `node scripts/e2e/phase10.mjs`, `node scripts/e2e/phase11.mjs`, `node scripts/e2e/phase12.mjs`, `node scripts/e2e/demo.mjs`, `node scripts/e2e/import.mjs`, `node scripts/e2e/pilot.mjs`.
+Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`, `node scripts/e2e/phase4.mjs`, `node scripts/e2e/phase5.mjs`, `node scripts/e2e/phase7.mjs`, `node scripts/e2e/phase8.mjs`, `node scripts/e2e/phase9.mjs`, `node scripts/e2e/phase10.mjs`, `node scripts/e2e/phase11.mjs`, `node scripts/e2e/phase12.mjs`, `node scripts/e2e/demo.mjs`, `node scripts/e2e/import.mjs`, `node scripts/e2e/pilot.mjs`, `node scripts/e2e/rosters.mjs`, `node scripts/e2e/email.mjs`. Or everything at once: `bash scripts/regress.sh`.

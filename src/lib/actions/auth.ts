@@ -5,6 +5,8 @@ import { supabaseServer } from '@/lib/supabase/server'
 import { withUser } from '@/lib/db'
 import { getSession, homeFor } from '@/lib/auth'
 import { provisionDemo } from '@/lib/demo'
+import { passwordLink } from '@/lib/links'
+import { emailHtml, mailEnabled, sendMail } from '@/lib/mail'
 import { track } from '@/lib/track'
 
 export type FormState = { error?: string; message?: string } | undefined
@@ -79,4 +81,32 @@ export async function setPassword(_: FormState, fd: FormData): Promise<FormState
   const { error } = await supabase.auth.updateUser({ password })
   if (error) return { error: error.message }
   redirect('/')
+}
+
+const lastReset = new Map<string, number>()
+
+/**
+ * Emails a one-time sign-in link. Always answers the same way whether or not the account exists,
+ * and throttles repeat requests per address (in-memory, per server instance).
+ */
+export async function forgotPassword(_: FormState, fd: FormData): Promise<FormState> {
+  const email = str(fd, 'email').toLowerCase()
+  const generic = { message: 'If that email has an AcademyOS account, a sign-in link is on its way. Check your inbox.' }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { error: 'Enter a valid email address.' }
+  if (!mailEnabled()) {
+    return { error: 'Email is not set up for this AcademyOS yet. Ask your academy for a new sign-in link.' }
+  }
+  const now = Date.now()
+  if (now - (lastReset.get(email) ?? 0) < 60_000) return generic
+  lastReset.set(email, now)
+  try {
+    const url = await passwordLink(email, true)
+    await sendMail(email, 'Reset your AcademyOS password',
+      `Use this link to sign in and choose a new password (it works once): ${url}`,
+      emailHtml('Reset your password', 'Use the button below to sign in and choose a new password.', 'Choose a new password', url))
+  } catch (e) {
+    // unknown email or mail failure: same response either way
+    console.error('forgotPassword', e instanceof Error ? e.message : e)
+  }
+  return generic
 }

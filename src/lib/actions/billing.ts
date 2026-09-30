@@ -1,19 +1,14 @@
 'use server'
 
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { requireAdmin, requireRole } from '@/lib/auth'
 import { withUser } from '@/lib/db'
 import { billingMode, stripe } from '@/lib/billing/stripe'
+import { baseUrl } from '@/lib/links'
 import type { FormState } from './auth'
 
-async function origin() {
-  const h = await headers()
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000'
-  return `${h.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https')}://${host}`
-}
 
 const refresh = () => {
   revalidatePath('/billing')
@@ -82,7 +77,7 @@ export type AssignState = { error?: string; message?: string; checkoutUrl?: stri
 /** Stripe Checkout for an existing (incomplete) membership. Metadata ties everything back to our row. */
 async function checkoutFor(m: { id: string; organization_id: string; stripe_price_id: string | null; stripe_customer_id: string | null; guardian_email: string | null; athlete: string }) {
   if (!m.stripe_price_id) throw new Error('This plan has no Stripe price yet. Re-save the plan to create one.')
-  const base = await origin()
+  const base = await baseUrl()
   const session = await stripe().checkout.sessions.create({
     mode: 'subscription',
     line_items: [{ price: m.stripe_price_id, quantity: 1 }],
@@ -195,6 +190,6 @@ export async function parentBillingPortal() {
   const [m] = await withUser(s.userId, (q) =>
     q<{ stripe_customer_id: string }>(`select stripe_customer_id from memberships where stripe_customer_id is not null limit 1`))
   if (!m) redirect('/parent/billing')
-  const portal = await stripe().billingPortal.sessions.create({ customer: m.stripe_customer_id, return_url: `${await origin()}/parent/billing` })
+  const portal = await stripe().billingPortal.sessions.create({ customer: m.stripe_customer_id, return_url: `${await baseUrl()}/parent/billing` })
   redirect(portal.url)
 }

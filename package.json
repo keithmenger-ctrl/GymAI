@@ -15,6 +15,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^1.48.0",
     "next": "16.3.7",
+    "nodemailer": "^10.0.12",
     "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -26,12 +27,15 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.7",
+    "mailparser": "^3.9.31",
     "playwright-core": "^1.63.0",
+    "smtp-server": "^3.19.15",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

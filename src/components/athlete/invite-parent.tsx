@@ -11,6 +11,7 @@ export function InviteParent({ guardianId, hasLogin }: { guardianId: string; has
 export function InviteButton({ id, hasLogin, kind }: { id: string; hasLogin: boolean; kind: 'parent' | 'coach' }) {
   const [pending, start] = useTransition()
   const [link, setLink] = useState<string>()
+  const [note, setNote] = useState<string>()
   const [error, setError] = useState<string>()
   const [copied, setCopied] = useState(false)
 
@@ -20,7 +21,10 @@ export function InviteButton({ id, hasLogin, kind }: { id: string; hasLogin: boo
       setCopied(false)
       const r = await (kind === 'parent' ? inviteParent(id) : inviteCoach(id))
       if (r.error) setError(r.error)
-      else setLink(r.link)
+      else {
+        setLink(r.link)
+        setNote(r.emailedTo ? `Emailed to ${r.emailedTo}.` : r.emailError ? `Email failed (${r.emailError}). Share the link instead.` : undefined)
+      }
     })
 
   return (
@@ -29,6 +33,7 @@ export function InviteButton({ id, hasLogin, kind }: { id: string; hasLogin: boo
         {pending ? 'Creating…' : hasLogin ? 'New sign-in link' : kind === 'parent' ? 'Invite to parent portal' : 'Give app access'}
       </Button>
       {error && <p role="alert" className="text-sm text-bad">{error}</p>}
+      {note && <p role="status" className="text-xs text-ok">{note}</p>}
       {link && (
         <div className="space-y-1.5">
           <p className="text-xs text-muted">Share this one-time link with the {kind}. It lets them set a password.</p>

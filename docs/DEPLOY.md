@@ -20,6 +20,8 @@ same thing on hosted Supabase and Vercel. Items marked **verify** could not be e
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon / publishable key |
 | `SUPABASE_SERVICE_ROLE_KEY` | service_role / secret key (server only) |
 | `DATABASE_URL` | Settings → Database → **Transaction pooler** connection string (port 6543) |
+| `APP_URL` | `https://<your domain>` (**required** for emailed links) |
+| `SMTP_URL`, `MAIL_FROM` | optional; any SMTP provider, e.g. `smtps://resend:<API key>@smtp.resend.com:465` and `AcademyOS <noreply@yourdomain.com>`. Enables emailed invites + "Forgot password?" |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | optional; leave empty for dev-mode billing |
 | `ANTHROPIC_API_KEY` | optional; AI drafts fall back to templates |
 
@@ -52,9 +54,9 @@ Most other suites assume the shared seed (`supabase/seed.sql`); `pilot.mjs`, `ph
 need direct database access (`DATABASE_URL`). Run the RLS test suite only against a throwaway database.
 
 ## 6. Before real families use it
-- Invite emails: invites currently produce a copy-paste link. To email them, configure SMTP in Supabase (the built-in
-  sender is rate-limited) and customize the "Reset password" template to link to
-  `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/set-password`. Wiring the send is not
-  implemented yet.
+- Email: set `SMTP_URL`, `MAIL_FROM` and `APP_URL` (above). AcademyOS sends its own emails (invites, password reset) with
+  one-time links to `/auth/confirm`, so no Supabase email-template changes are needed. Without SMTP, invites fall back to
+  copy-paste links and "Forgot password?" tells users to ask their academy. **Verify** by sending yourself a reset email.
+  Emailed links always use `APP_URL`, never the request's Host header (prevents token-leak via forged Host).
 - Rate limiting: Supabase Auth rate-limits sign-in; add limits for invite creation if exposed widely.
 - Privacy policy and parental consent language (athletes are minors).

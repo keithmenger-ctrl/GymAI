@@ -73,11 +73,13 @@ export function AttendanceRoster({
           <li key={a.id} className="p-3">
             <div className="flex items-center gap-3">
               <Link href={`${athleteBase}/${a.id}`} className="min-w-0 flex-1">
-                <p className="flex items-center gap-1.5 font-medium">
-                  <span className="truncate">{a.first_name} {a.last_name}</span>
-                  {due.has(a.id) && <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-amber-800">Test due</span>}
-                </p>
-                {a.last_note && <p className="truncate text-xs text-muted">{a.last_note}</p>}
+                <p className="font-medium leading-tight [overflow-wrap:anywhere]">{a.first_name} {a.last_name}</p>
+                {(due.has(a.id) || a.last_note) && (
+                  <p className="flex items-center gap-1.5 text-xs text-muted">
+                    {due.has(a.id) && <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-amber-800">Test due</span>}
+                    {a.last_note && <span className="truncate">{a.last_note}</span>}
+                  </p>
+                )}
               </Link>
               <button
                 type="button"

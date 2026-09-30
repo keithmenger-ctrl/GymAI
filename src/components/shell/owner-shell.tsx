@@ -1,6 +1,7 @@
 import type { Session } from '@/lib/auth'
 import { PillNav, SidebarNav, type NavItem } from '@/components/nav'
 import { UserMenu, Wordmark } from './user-menu'
+import { DemoBar } from './demo-bar'
 
 export const OWNER_NAV: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -16,6 +17,8 @@ export const OWNER_NAV: NavItem[] = [
 
 export function OwnerShell({ session, children }: { session: Session; children: React.ReactNode }) {
   return (
+    <>
+    <DemoBar session={session} />
     <div className="min-h-screen md:grid md:grid-cols-[15rem_1fr] print:block">
       <aside className="hidden print:!hidden border-r border-line bg-card md:flex md:flex-col md:gap-8 md:p-4">
         <div className="px-3 pt-2"><Wordmark org={session.orgName} /></div>
@@ -33,5 +36,6 @@ export function OwnerShell({ session, children }: { session: Session; children: 
         <main className="mx-auto max-w-6xl px-4 py-8 md:px-8">{children}</main>
       </div>
     </div>
+    </>
   )
 }

@@ -60,6 +60,11 @@ su postgres -c "psql -q academyos_test -f supabase/tests/rls.sql"   # 49 tenant/
 
 Anything not checked above is **not implemented**.
 
+## Demo academies
+- Signup has **Start with demo data** (on by default). It creates the prospect's own organization, then fills it with `seed_demo_org()` (migration 0007): 30 athletes, 3 coaches, 6 parents, curriculum, ~8 weeks of history anchored to *today*. Each prospect gets an isolated copy.
+- Demo orgs (`organizations.is_demo`) show a **Demo academy · view as Owner / Coach / Parent** bar. Switching signs in as that org's demo user through a one-time link, so every view is the real one (same routes, same RLS). Non-demo orgs never see the bar, and the switch action refuses them.
+- Demo coach/parent logins get random passwords and `@academyos.demo` addresses; they are only reachable through the switcher. `supabase/seed.sql` creates the shared "Vegas Elite Performance" demo org the same way (with the fixed `@vegaselite.test` logins).
+
 ## Billing
 - **Dev mode** (no `STRIPE_SECRET_KEY`): memberships/payments are database rows; the Billing page shows a "Dev mode" banner and "Sim. paid / Sim. failed" buttons to demo past-due flows. Parents see status and payment history but no pay button.
 - **Stripe mode**: saving a plan creates a Stripe Product/Price (a changed amount creates a new Price). Starting a membership creates it as *Awaiting payment* plus a Stripe Checkout link for the parent (also available as "Complete payment" in the parent portal). `/api/stripe/webhook` (signature-verified, idempotent) syncs `checkout.session.completed`, `customer.subscription.*` and `invoice.paid/payment_failed` into memberships and payments. Parents manage cards through the Stripe billing portal.
@@ -72,4 +77,4 @@ Supabase Auth handles identity (`@supabase/ssr` cookies, verified with `auth.get
 ## Local development
 Against a real Supabase project: copy `.env.example` to `.env.local`, fill it in, run the SQL in `supabase/migrations` then `supabase/seed.sql` (SQL editor or `supabase db push`), `npm install && npm run dev`.
 
-Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`, `node scripts/e2e/phase4.mjs`, `node scripts/e2e/phase5.mjs`, `node scripts/e2e/phase7.mjs`, `node scripts/e2e/phase8.mjs`, `node scripts/e2e/phase9.mjs`, `node scripts/e2e/phase10.mjs`, `node scripts/e2e/phase11.mjs`, `node scripts/e2e/phase12.mjs`.
+Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`, `node scripts/e2e/phase4.mjs`, `node scripts/e2e/phase5.mjs`, `node scripts/e2e/phase7.mjs`, `node scripts/e2e/phase8.mjs`, `node scripts/e2e/phase9.mjs`, `node scripts/e2e/phase10.mjs`, `node scripts/e2e/phase11.mjs`, `node scripts/e2e/phase12.mjs`, `node scripts/e2e/demo.mjs`.

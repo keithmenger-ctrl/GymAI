@@ -14,6 +14,7 @@ export type Session = {
   timezone: string
   role: Role
   canViewFinance: boolean
+  isDemo: boolean
 }
 
 /** Where each role lands after login. */
@@ -31,8 +32,8 @@ export const getSession = cache(async (): Promise<Session | null> => {
   const user = data.user
   if (!user) return null
   const rows = await withUser(user.id, (q) =>
-    q<{ organization_id: string; org_name: string; timezone: string; role: Role; can_view_finance: boolean; full_name: string | null }>(
-      `select r.organization_id, o.name as org_name, o.timezone, r.role, r.can_view_finance, p.full_name
+    q<{ organization_id: string; org_name: string; timezone: string; is_demo: boolean; role: Role; can_view_finance: boolean; full_name: string | null }>(
+      `select r.organization_id, o.name as org_name, o.timezone, o.is_demo, r.role, r.can_view_finance, p.full_name
          from user_roles r
          join organizations o on o.id = r.organization_id
          left join profiles p on p.id = r.user_id
@@ -51,6 +52,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
     timezone: r.timezone,
     role: r.role,
     canViewFinance: r.can_view_finance || r.role === 'owner' || r.role === 'admin',
+    isDemo: r.is_demo,
   }
 })
 

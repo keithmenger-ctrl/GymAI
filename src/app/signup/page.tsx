@@ -16,6 +16,10 @@ export default function SignupPage() {
           { name: 'fullName', label: 'Your name', autoComplete: 'name' },
           { name: 'email', label: 'Email', type: 'email', autoComplete: 'email' },
           { name: 'password', label: 'Password', type: 'password', autoComplete: 'new-password' },
+          {
+            name: 'demo', type: 'checkbox', defaultChecked: true, label: 'Start with demo data',
+            hint: '30 athletes, 3 coaches, programs, curriculum and 8 weeks of history, so you can explore every view. Leave unchecked to start empty with your own data.',
+          },
         ]}
       />
       <p className="mt-6 text-sm text-muted">

@@ -72,8 +72,10 @@ const path = (page) => new URL(page.url()).pathname
   await page.fill('input[name=fullName]', 'Abe Coach')
   await page.fill('input[name=email]', email)
   await page.fill('input[name=password]', 'a-long-password')
+  await page.uncheck('input[name=demo]')
   await Promise.all([page.waitForURL('**/dashboard', { timeout: 20000 }), page.click('button[type=submit]')])
   check('signup lands on /dashboard', path(page) === '/dashboard', path(page))
+  check('empty academy has no demo bar', !(await page.innerText('body')).includes('Demo academy'))
   check('new org name shown, not the demo org', (await page.textContent('aside')).includes('ABC Baseball Academy') && !(await page.innerText('body')).includes('Vegas Elite'))
   await browser.close()
 }

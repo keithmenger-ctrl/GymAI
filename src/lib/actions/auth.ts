@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { supabaseServer } from '@/lib/supabase/server'
 import { withUser } from '@/lib/db'
 import { getSession, homeFor } from '@/lib/auth'
+import { provisionDemo } from '@/lib/demo'
 
 export type FormState = { error?: string; message?: string } | undefined
 
@@ -32,7 +33,16 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
     // Email confirmation is enabled on this project: finish the org setup at first login (/onboarding).
     return { message: 'Check your email to confirm your account, then sign in to finish setting up your facility.' }
   }
-  await withUser(data.user.id, (q) => q('select create_organization($1, $2)', [orgName, fullName]))
+  const [org] = await withUser(data.user.id, (q) =>
+    q<{ id: string }>('select create_organization($1, $2) as id', [orgName, fullName]))
+  if (fd.get('demo') === 'on') {
+    try {
+      await provisionDemo(org.id)
+    } catch (e) {
+      // The academy itself exists; only the sample data failed. Let the owner in rather than block signup.
+      console.error('Demo data provisioning failed', e)
+    }
+  }
   redirect('/dashboard')
 }
 

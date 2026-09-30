@@ -83,6 +83,9 @@ Athletes → **Import CSV** (owners/admins). Download the template or use any ex
 ## Data access design
 Supabase Auth handles identity (`@supabase/ssr` cookies, verified with `auth.getUser()` on every request). Data is read/written with plain SQL through `pg`, inside a transaction that first sets the caller's identity and switches to the `authenticated` role (`src/lib/db.ts → withUser`). Row level security therefore applies to every query the app makes, while dashboards/reports can use real SQL joins and aggregates. `withServiceRole` (bypasses RLS) exists only for server-side jobs (invites, Stripe webhook).
 
+## Deploying
+See [docs/DEPLOY.md](docs/DEPLOY.md) (Supabase + Vercel + Stripe checklist).
+
 ## Local development
 Against a real Supabase project: copy `.env.example` to `.env.local`, fill it in, run the SQL in `supabase/migrations` then `supabase/seed.sql` (SQL editor or `supabase db push`), `npm install && npm run dev`.
 

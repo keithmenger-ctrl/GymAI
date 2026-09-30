@@ -13,12 +13,39 @@ const exe = () => {
 
 export async function launch(viewport = { width: 1280, height: 800 }) {
   const browser = await chromium.launch({ executablePath: exe(), args: ['--no-sandbox'] })
+  // every page from any context (including extra contexts for a second user) waits for content to settle
+  const newContext = browser.newContext.bind(browser)
+  browser.newContext = async (...a) => {
+    const c = await newContext(...a)
+    const newPage = c.newPage.bind(c)
+    c.newPage = async (...b) => settleOnNavigation(await newPage(...b))
+    return c
+  }
   const ctx = await browser.newContext({ viewport })
   const page = await ctx.newPage()
   const errors = []
   page.on('pageerror', (e) => errors.push(String(e)))
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
   return { browser, ctx, page, errors }
+}
+
+/**
+ * Route-level loading skeletons (aria-busy) render while server content streams in, and client-side
+ * navigations change the URL before the content arrives. Make navigation + reads wait until the page
+ * has settled, so every suite reads real content rather than the skeleton.
+ */
+export function settleOnNavigation(page) {
+  const settle = () =>
+    page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'), null, { timeout: 30000 }).catch(() => {})
+  for (const name of ['goto', 'reload', 'waitForURL']) {
+    const orig = page[name].bind(page)
+    page[name] = async (...args) => { const r = await orig(...args); await settle(); return r }
+  }
+  for (const name of ['innerText', 'textContent']) {
+    const orig = page[name].bind(page)
+    page[name] = async (...args) => { await settle(); return orig(...args) }
+  }
+  return page
 }
 
 export async function login(page, email) {
@@ -36,4 +63,14 @@ export function check(name, ok, extra = '') {
 export const done = () => {
   console.log(failures ? `\n${failures} FAILED` : '\nALL PASSED')
   process.exit(failures ? 1 : 0)
+}
+
+/**
+ * A protected page must show the not-found screen and none of the protected content.
+ * (With loading skeletons the response streams, so the HTTP status is 200; assert on what renders.)
+ */
+export async function isBlocked(page, forbidden = []) {
+  const body = await page.innerText('body')
+  const html = await page.content()
+  return body.includes("We couldn't find that") && forbidden.every((t) => !body.includes(t) && !html.includes(t))
 }

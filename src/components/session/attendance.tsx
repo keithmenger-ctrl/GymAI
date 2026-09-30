@@ -22,8 +22,9 @@ const OPTIONS = [
  * Every change is saved immediately (no separate "save" step to forget on the turf).
  */
 export function AttendanceRoster({
-  sessionId, roster, athleteBase,
-}: { sessionId: string; roster: RosterAthlete[]; athleteBase: string }) {
+  sessionId, roster, athleteBase, testDue = [],
+}: { sessionId: string; roster: RosterAthlete[]; athleteBase: string; testDue?: string[] }) {
+  const due = new Set(testDue)
   const initial = Object.fromEntries(roster.map((a) => [a.id, a.status])) as Record<string, Status>
   const [statuses, apply] = useOptimistic(initial, (state, patch: Record<string, Status>) => ({ ...state, ...patch }))
   const [, start] = useTransition()
@@ -72,7 +73,10 @@ export function AttendanceRoster({
           <li key={a.id} className="p-3">
             <div className="flex items-center gap-3">
               <Link href={`${athleteBase}/${a.id}`} className="min-w-0 flex-1">
-                <p className="truncate font-medium">{a.first_name} {a.last_name}</p>
+                <p className="flex items-center gap-1.5 font-medium">
+                  <span className="truncate">{a.first_name} {a.last_name}</span>
+                  {due.has(a.id) && <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-amber-800">Test due</span>}
+                </p>
                 {a.last_note && <p className="truncate text-xs text-muted">{a.last_note}</p>}
               </Link>
               <button

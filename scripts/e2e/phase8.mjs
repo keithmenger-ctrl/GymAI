@@ -1,5 +1,5 @@
 // Athlete progress actions + parent portal.
-import { launch, login, check, done, BASE } from './lib.mjs'
+import { launch, login, check, done, isBlocked, BASE } from './lib.mjs'
 
 const stamp = Date.now().toString().slice(-5)
 let johnnyUrl, otherAthleteUrl
@@ -78,8 +78,8 @@ let johnnyUrl, otherAthleteUrl
 
   // isolation: another family's athlete
   const otherId = otherAthleteUrl.split('/').pop()
-  const res = await page.goto(`${BASE}/parent/progress/${otherId}`)
-  check('isolation: other athlete 404s for parent', res.status() === 404, String(res.status()))
+  await page.goto(`${BASE}/parent/progress/${otherId}`)
+  check('isolation: other athlete blocked for parent, no data rendered', await isBlocked(page, ['Marcus', 'Assessment history']))
   check('no console errors (parent)', errors.filter((e) => !e.includes('404')).length === 0, errors.join(' | ').slice(0, 300))
   await browser.close()
 }

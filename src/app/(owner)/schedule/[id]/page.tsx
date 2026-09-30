@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/auth'
 import { enrollableAthletes, getSessionDetail } from '@/lib/queries/sessions'
+import { dueForReassessment } from '@/lib/queries/assessments'
 import { deleteSession, enrollAthlete, unenrollAthlete } from '@/lib/actions/sessions'
 import { AttendanceRoster } from '@/components/session/attendance'
 import { SessionNotes } from '@/components/session/notes'
@@ -16,8 +17,9 @@ export default async function OwnerSessionPage({ params }: PageProps<'/schedule/
   const s = await requireAdmin()
   const { id } = await params
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound()
-  const [session, available] = await Promise.all([getSessionDetail(s, id), enrollableAthletes(s, id)])
+  const [session, available, due] = await Promise.all([getSessionDetail(s, id), enrollableAthletes(s, id), dueForReassessment(s)])
   if (!session) notFound()
+  const testDue = due.map((d) => d.athlete_id)
   const full = session.roster.length >= session.max_athletes
 
   return (
@@ -37,7 +39,7 @@ export default async function OwnerSessionPage({ params }: PageProps<'/schedule/
         <div className="space-y-6">
           <section>
             <h2 className="mb-3 font-semibold">Roster & attendance <span className="font-normal text-muted">({session.roster.length}/{session.max_athletes})</span></h2>
-            <AttendanceRoster sessionId={id} roster={session.roster} athleteBase="/athletes" />
+            <AttendanceRoster sessionId={id} roster={session.roster} athleteBase="/athletes" testDue={testDue} />
             {session.roster.length > 0 && (
               <details className="mt-3">
                 <summary className="cursor-pointer text-sm text-muted">Remove athletes from this session</summary>

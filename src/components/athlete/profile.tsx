@@ -6,6 +6,7 @@ import { ActionForm } from '@/components/form'
 import { Button, Input } from '@/components/ui'
 import { addMilestone, changeLevel } from '@/lib/actions/progress'
 import { withUser } from '@/lib/db'
+import { Sparkline } from '@/components/sparkline'
 import { listReports } from '@/lib/queries/reports'
 import { GenerateReportButton } from '@/components/report/generate-button'
 import { fmtDate, fmtShortDate, initials, money, num, relativeDays } from '@/lib/format'
@@ -189,6 +190,12 @@ export async function AthleteProfile({
                           </Badge>
                         )}
                       </div>
+                      {s.results.length >= 2 && (
+                        <div className="mb-1 mt-2">
+                          <Sparkline name={s.name} unit={s.unit}
+                            points={s.results.map((r) => ({ value: Number(r.value), label: fmtDate(r.recorded_on) }))} />
+                        </div>
+                      )}
                       <table className="w-full text-sm">
                         <tbody>
                           {[...s.results].reverse().map((r, i, arr) => {

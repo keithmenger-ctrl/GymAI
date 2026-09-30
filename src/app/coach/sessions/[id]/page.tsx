@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireStaff } from '@/lib/auth'
+import { dueForReassessment } from '@/lib/queries/assessments'
 import { getSessionDetail } from '@/lib/queries/sessions'
 import { AttendanceRoster } from '@/components/session/attendance'
 import { SessionNotes } from '@/components/session/notes'
@@ -14,8 +15,9 @@ export default async function CoachSessionPage({ params }: PageProps<'/coach/ses
   const s = await requireStaff()
   const { id } = await params
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound()
-  const session = await getSessionDetail(s, id)
+  const [session, due] = await Promise.all([getSessionDetail(s, id), dueForReassessment(s)])
   if (!session) notFound()
+  const testDue = due.map((d) => d.athlete_id)
 
   return (
     <div className="space-y-6">
@@ -30,7 +32,7 @@ export default async function CoachSessionPage({ params }: PageProps<'/coach/ses
       <SessionPlan session={session} />
       <section>
         <h2 className="mb-3 text-lg font-semibold">Athletes <span className="font-normal text-muted">({session.roster.length})</span></h2>
-        <AttendanceRoster sessionId={id} roster={session.roster} athleteBase="/coach/athletes" />
+        <AttendanceRoster sessionId={id} roster={session.roster} athleteBase="/coach/athletes" testDue={testDue} />
         {session.roster.length > 0 && (
           <Link href={`/coach/assessments?session=${id}`} className={`${buttonClass('secondary', 'lg')} mt-3 w-full`}>
             Record assessments for this group

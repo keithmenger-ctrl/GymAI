@@ -1,5 +1,5 @@
 // Progress reports: generate (owner + coach), edit, share/unshare, parent visibility.
-import { launch, login, check, done, BASE } from './lib.mjs'
+import { launch, login, check, done, isBlocked, BASE } from './lib.mjs'
 
 const stamp = Date.now().toString().slice(-5)
 let reportUrl
@@ -44,8 +44,8 @@ let reportUrl
   {
     const p = await launch({ width: 390, height: 844 })
     await login(p.page, 'parent1@vegaselite.test')
-    const res = await p.page.goto(reportUrl.replace('/reports/', '/parent/reports/'))
-    check('draft: parent gets 404', res.status() === 404, String(res.status()))
+    await p.page.goto(reportUrl.replace('/reports/', '/parent/reports/'))
+    check('draft: parent blocked, report text not rendered', await isBlocked(p.page, ['outstanding this block']))
     await p.browser.close()
   }
 
@@ -95,8 +95,8 @@ let reportUrl
   await browser.close()
   const p = await launch({ width: 390, height: 844 })
   await login(p.page, 'parent1@vegaselite.test')
-  const res = await p.page.goto(reportUrl.replace('/reports/', '/parent/reports/'))
-  check('unshare: parent loses access', res.status() === 404)
+  await p.page.goto(reportUrl.replace('/reports/', '/parent/reports/'))
+  check('unshare: parent loses access, report text not rendered', await isBlocked(p.page, ['outstanding this block']))
   await p.browser.close()
 }
 
@@ -110,8 +110,8 @@ let reportUrl
   await browser.close()
   const p = await launch({ width: 390, height: 844 })
   await login(p.page, 'parent2@vegaselite.test')
-  const res = await p.page.goto(reportUrl.replace('/reports/', '/parent/reports/'))
-  check('isolation: other parent 404s on shared report', res.status() === 404)
+  await p.page.goto(reportUrl.replace('/reports/', '/parent/reports/'))
+  check('isolation: other parent blocked on shared report, text not rendered', await isBlocked(p.page, ['outstanding this block', 'Johnny Alvarez']))
   await p.browser.close()
 }
 done()

@@ -1,5 +1,6 @@
 import type { ReportSections, ReportSnapshot } from '@/lib/queries/reports'
 import { fmtDate, num } from '@/lib/format'
+import { Sparkline } from '@/components/sparkline'
 
 /** The report as a parent sees it. Also the print layout (Save as PDF from the browser). */
 export function ReportDocument({
@@ -42,7 +43,11 @@ export function ReportDocument({
                 <tr key={i.name} className="border-t border-line first:border-0">
                   <td className="py-2">{i.name}</td>
                   <td className="py-2 text-right tabular-nums">
-                    {num(i.first)} → <span className="font-semibold">{num(i.last)}</span> <span className="text-muted">{i.unit}</span>
+                    {i.series && i.series.length >= 2 ? (
+                      <Sparkline name={i.name} unit={i.unit} points={i.series} width={96} height={28} />
+                    ) : (
+                      <>{num(i.first)} → <span className="font-semibold">{num(i.last)}</span> <span className="text-muted">{i.unit}</span></>
+                    )}
                   </td>
                   <td className="w-8 py-2 text-right">
                     {i.better !== null && <span className={i.better ? 'text-ok' : 'text-bad'} aria-label={i.better ? 'improved' : 'declined'}>{i.better ? '▲' : '▼'}</span>}

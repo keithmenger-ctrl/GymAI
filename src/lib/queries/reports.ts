@@ -4,7 +4,10 @@ import { num } from '@/lib/format'
 
 export const REPORT_PERIOD_DAYS = 60
 
-export type Improvement = { name: string; unit: string; first: number; last: number; better: boolean | null }
+export type Improvement = {
+  name: string; unit: string; first: number; last: number; better: boolean | null
+  series?: { value: number; label: string }[] // oldest first; absent on reports created before sparklines
+}
 
 export type ReportSnapshot = {
   athlete: string
@@ -40,6 +43,8 @@ export const buildSnapshot = (s: Session, athleteId: string) =>
     // first vs latest result per metric over the last ~6 months
     const improvements = await q<Improvement>(
       `select t.name, t.unit,
+              json_agg(json_build_object('value', r.value::float8, 'label', to_char(r.recorded_on, 'Mon FMDD'))
+                       order by r.recorded_on, r.created_at) as series,
               (array_agg(r.value order by r.recorded_on, r.created_at))[1]::float8 as first,
               (array_agg(r.value order by r.recorded_on desc, r.created_at desc))[1]::float8 as last,
               case when count(*) < 2 then null

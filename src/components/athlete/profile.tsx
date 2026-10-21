@@ -153,7 +153,7 @@ export async function AthleteProfile({
             {viewer !== 'parent' && (
               <ActionForm action={addMilestone.bind(null, a.id)} submit="Add milestone" variant="secondary" size="sm"
                 className="mb-6 flex flex-wrap items-start gap-2 space-y-0" resetOnSuccess>
-                <Input name="title" placeholder="e.g. First sub-1.8s 10-yard sprint" className="max-w-sm flex-1" aria-label="Milestone" required />
+                <Input name="title" placeholder="e.g. Reached a personal best" className="max-w-sm flex-1" aria-label="Milestone" required />
               </ActionForm>
             )}
             {timeline.length === 0 ? (

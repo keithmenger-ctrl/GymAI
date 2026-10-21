@@ -12,7 +12,7 @@ export default function SignupPage() {
         action={signup}
         submit="Create academy"
         fields={[
-          { name: 'orgName', label: 'Facility name', placeholder: 'Vegas Elite Performance' },
+          { name: 'orgName', label: 'Facility name', placeholder: 'Your facility' },
           { name: 'fullName', label: 'Your name', autoComplete: 'name' },
           { name: 'email', label: 'Email', type: 'email', autoComplete: 'email' },
           { name: 'password', label: 'Password', type: 'password', autoComplete: 'new-password' },

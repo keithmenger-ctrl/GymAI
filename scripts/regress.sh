@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Full local regression: fresh dev DB, every browser suite, RLS tests, lint, typecheck, build.
-# Exits non-zero if anything fails. Requires the dev server on :3000 (npm run dev).
+# Exits non-zero if anything fails. Requires the dev server on :3000, started with every optional feature on:
+#   FEATURE_BILLING=true FEATURE_ASSISTANT=true FEATURE_PILOT_FEEDBACK=true FEATURE_DEMO=true npm run dev
 set -u
 cd "$(dirname "$0")/.."
 fail=0

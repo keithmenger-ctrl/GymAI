@@ -1,4 +1,5 @@
 import { requireRole } from '@/lib/auth'
+import { requireFlag } from '@/lib/flags'
 import { billingMode } from '@/lib/billing/stripe'
 import { myMemberships } from '@/lib/queries/billing'
 import { parentBillingPortal, parentCheckout } from '@/lib/actions/billing'
@@ -11,6 +12,7 @@ const TONE = { active: 'ok', trialing: 'volt', past_due: 'bad', incomplete: 'war
 const LABEL = { active: 'Active', trialing: 'Trial', past_due: 'Past due', incomplete: 'Awaiting payment', canceled: 'Canceled' }
 
 export default async function ParentBilling({ searchParams }: PageProps<'/parent/billing'>) {
+  requireFlag('billing')
   const s = await requireRole('parent')
   const sp = await searchParams
   const memberships = await myMemberships(s)

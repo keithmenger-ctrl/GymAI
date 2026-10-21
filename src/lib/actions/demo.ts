@@ -5,12 +5,14 @@ import { getSession, homeFor, type Role } from '@/lib/auth'
 import { withServiceRole } from '@/lib/db'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { supabaseServer } from '@/lib/supabase/server'
+import { requireFlag } from '@/lib/flags'
 
 /**
  * Demo academies only: sign in as the org's demo owner / coach / parent so every view is real
  * (same routes, same RLS). Refused for non-demo organizations.
  */
 export async function switchDemoView(role: Extract<Role, 'owner' | 'coach' | 'parent'>) {
+  requireFlag('demo')
   const s = await getSession()
   if (!s) redirect('/login')
   if (!s.isDemo || !['owner', 'coach', 'parent'].includes(role)) redirect(homeFor(s.role))

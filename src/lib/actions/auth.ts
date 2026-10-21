@@ -5,6 +5,7 @@ import { supabaseServer } from '@/lib/supabase/server'
 import { withUser } from '@/lib/db'
 import { getSession, homeFor } from '@/lib/auth'
 import { provisionDemo } from '@/lib/demo'
+import { flags } from '@/lib/flags'
 import { passwordLink } from '@/lib/links'
 import { emailHtml, mailEnabled, sendMail } from '@/lib/mail'
 import { track } from '@/lib/track'
@@ -40,7 +41,7 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
   }
   const [org] = await withUser(data.user.id, (q) =>
     q<{ id: string }>('select create_organization($1, $2) as id', [orgName, fullName]))
-  if (fd.get('demo') === 'on') {
+  if (flags.demo() && fd.get('demo') === 'on') {
     try {
       await provisionDemo(org.id)
       const s = await getSession()

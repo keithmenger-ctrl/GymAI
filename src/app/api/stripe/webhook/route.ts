@@ -1,5 +1,6 @@
 import type Stripe from 'stripe'
 import { NextResponse } from 'next/server'
+import { flags } from '@/lib/flags'
 import { withServiceRole, type Q } from '@/lib/db'
 import { invoiceSubscriptionId, mapStatus, periodEnd, stripe } from '@/lib/billing/stripe'
 
@@ -9,6 +10,7 @@ import { invoiceSubscriptionId, mapStatus, periodEnd, stripe } from '@/lib/billi
  * to that membership's organization. Replays are harmless (upserts / unique indexes).
  */
 export async function POST(req: Request) {
+  if (!flags.billing()) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   const secret = process.env.STRIPE_WEBHOOK_SECRET
   if (!secret || !process.env.STRIPE_SECRET_KEY) return NextResponse.json({ error: 'Stripe not configured' }, { status: 501 })
   const body = await req.text()

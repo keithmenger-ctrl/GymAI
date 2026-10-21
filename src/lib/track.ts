@@ -1,6 +1,7 @@
 import 'server-only'
 import type { Session } from '@/lib/auth'
 import { withUser } from '@/lib/db'
+import { flags } from '@/lib/flags'
 
 export type EventName =
   | 'login' | 'attendance_marked' | 'attendance_bulk' | 'note_added' | 'assessments_recorded'
@@ -11,6 +12,7 @@ export type EventName =
  * that triggered it. Runs under RLS (users can only insert events for themselves in their org).
  */
 export async function track(s: Session, name: EventName, props: Record<string, unknown> = {}) {
+  if (!flags.pilotFeedback()) return
   try {
     await withUser(s.userId, (q) =>
       q('insert into usage_events (organization_id, user_id, role, name, props) values ($1, $2, $3, $4, $5)',

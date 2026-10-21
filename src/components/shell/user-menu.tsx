@@ -1,6 +1,7 @@
 import { LogOut } from 'lucide-react'
 import { logout } from '@/lib/actions/auth'
 import type { Session } from '@/lib/auth'
+import { flags } from '@/lib/flags'
 import { FeedbackButton } from './feedback'
 
 export function UserMenu({ session }: { session: Session }) {
@@ -10,7 +11,7 @@ export function UserMenu({ session }: { session: Session }) {
         <p className="truncate text-sm font-medium">{session.fullName}</p>
         <p className="text-xs capitalize text-muted">{session.role}</p>
       </div>
-      <FeedbackButton />
+      {flags.pilotFeedback() && <FeedbackButton />}
       <form action={logout}>
         <button
           className="inline-flex size-9 items-center justify-center rounded-lg border border-line text-stone-600 hover:bg-stone-100"

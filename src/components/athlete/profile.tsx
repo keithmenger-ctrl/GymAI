@@ -11,6 +11,7 @@ import { listReports } from '@/lib/queries/reports'
 import { GenerateReportButton } from '@/components/report/generate-button'
 import { fmtDate, fmtShortDate, initials, money, num, relativeDays } from '@/lib/format'
 import type { Session } from '@/lib/auth'
+import { flags } from '@/lib/flags'
 import {
   assessmentSeries, athleteNotes, athleteTimeline, attendanceSummary, currentFocus, getAthlete,
   improvement, recentAttendance,
@@ -51,7 +52,7 @@ export async function AthleteProfile({
     listReports(session, id),
   ])
   // Membership: owners/admins, and coaches explicitly allowed to see billing. RLS returns nothing to anyone else.
-  const showMembership = viewer === 'admin' || (viewer === 'coach' && session.canViewFinance)
+  const showMembership = flags.billing() && (viewer === 'admin' || (viewer === 'coach' && session.canViewFinance))
   const memberships = showMembership
     ? await withUser(session.userId, (q) =>
         q<{ id: string; plan: string; price_cents: number; interval: string; status: string; next_billing_date: string | null }>(

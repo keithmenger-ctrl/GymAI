@@ -8,6 +8,7 @@ import { withUser } from '@/lib/db'
 import { billingMode, stripe } from '@/lib/billing/stripe'
 import { baseUrl } from '@/lib/links'
 import type { FormState } from './auth'
+import { requireFlag } from '@/lib/flags'
 
 
 const refresh = () => {
@@ -26,6 +27,7 @@ const planSchema = z.object({
 })
 
 export async function savePlan(id: string | null, _: FormState, fd: FormData): Promise<FormState> {
+  requireFlag('billing')
   const s = await requireAdmin()
   const p = planSchema.safeParse(Object.fromEntries(fd))
   if (!p.success) return { error: p.error.issues[0].message }
@@ -65,6 +67,7 @@ export async function savePlan(id: string | null, _: FormState, fd: FormData): P
 }
 
 export async function setPlanActive(id: string, active: boolean) {
+  requireFlag('billing')
   const s = await requireAdmin()
   await withUser(s.userId, (q) => q('update membership_plans set active = $2 where id = $1', [id, active]))
   refresh()
@@ -94,6 +97,7 @@ async function checkoutFor(m: { id: string; organization_id: string; stripe_pric
 const assignSchema = z.object({ athlete_id: z.uuid('Choose an athlete'), plan_id: z.uuid('Choose a plan') })
 
 export async function assignMembership(_: AssignState, fd: FormData): Promise<AssignState> {
+  requireFlag('billing')
   const s = await requireAdmin()
   const p = assignSchema.safeParse(Object.fromEntries(fd))
   if (!p.success) return { error: p.error.issues[0].message }
@@ -135,6 +139,7 @@ export async function assignMembership(_: AssignState, fd: FormData): Promise<As
 }
 
 export async function cancelMembership(id: string) {
+  requireFlag('billing')
   const s = await requireAdmin()
   const [m] = await withUser(s.userId, (q) =>
     q<{ stripe_subscription_id: string | null }>('select stripe_subscription_id from memberships where id = $1', [id]))
@@ -146,6 +151,7 @@ export async function cancelMembership(id: string) {
 
 /** Dev mode only: record a successful or failed charge so past-due flows can be demoed. */
 export async function simulatePayment(id: string, outcome: 'paid' | 'failed') {
+  requireFlag('billing')
   const s = await requireAdmin()
   if (billingMode() !== 'dev') throw new Error('Simulation is only available in dev mode.')
   await withUser(s.userId, async (q) => {
@@ -170,6 +176,7 @@ export async function simulatePayment(id: string, outcome: 'paid' | 'failed') {
 // ---------------------------------------------------------------- parent self-service (Stripe mode)
 
 export async function parentCheckout(membershipId: string) {
+  requireFlag('billing')
   const s = await requireRole('parent')
   if (billingMode() !== 'stripe') redirect('/parent/billing')
   // RLS: a parent can only read memberships where they are the guardian.
@@ -185,6 +192,7 @@ export async function parentCheckout(membershipId: string) {
 }
 
 export async function parentBillingPortal() {
+  requireFlag('billing')
   const s = await requireRole('parent')
   if (billingMode() !== 'stripe') redirect('/parent/billing')
   const [m] = await withUser(s.userId, (q) =>

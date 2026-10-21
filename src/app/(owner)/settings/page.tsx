@@ -1,4 +1,5 @@
 import { requireAdmin } from '@/lib/auth'
+import { flags } from '@/lib/flags'
 import { withUser } from '@/lib/db'
 import { billingMode } from '@/lib/billing/stripe'
 import { addLocation, updateOrganization } from '@/lib/actions/settings'
@@ -81,11 +82,11 @@ export default async function SettingsPage() {
           <div><dt className="text-muted">Owners/admins</dt><dd className="text-xl font-semibold">{count('owner') + count('admin')}</dd></div>
           <div><dt className="text-muted">Coaches</dt><dd className="text-xl font-semibold">{count('coach')}</dd></div>
           <div><dt className="text-muted">Parents</dt><dd className="text-xl font-semibold">{count('parent')}</dd></div>
-          <div><dt className="text-muted">Billing</dt><dd className="mt-1"><Badge tone={billingMode() === 'stripe' ? 'ok' : 'warn'}>{billingMode() === 'stripe' ? 'Stripe' : 'Dev mode'}</Badge></dd></div>
+          {flags.billing() && <div><dt className="text-muted">Billing</dt><dd className="mt-1"><Badge tone={billingMode() === 'stripe' ? 'ok' : 'warn'}>{billingMode() === 'stripe' ? 'Stripe' : 'Dev mode'}</Badge></dd></div>}
         </dl>
         <p className="mt-4 text-xs text-muted">
-          Coaches get app access from the Coaches page; parents from an athlete&apos;s profile. Coaches never see billing.
-          Coaches can be allowed to see billing status from the Coaches page.
+          Coaches get app access from the Coaches page; parents from an athlete&apos;s profile.
+          {flags.billing() && ' Coaches never see billing, unless allowed to see billing status from the Coaches page.'}
         </p>
       </Card>
     </div>

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { requireRole } from '@/lib/auth'
+import { flags } from '@/lib/flags'
 import { myAthletes } from '@/lib/queries/parent'
 import { Badge, Card, EmptyState } from '@/components/ui'
 import { fmtShortDate, fmtTime, fmtWeekday } from '@/lib/format'
@@ -30,7 +31,7 @@ export default async function ParentHome() {
                       <p className="text-lg font-semibold">{a.first_name} {a.last_name}</p>
                       <p className="text-sm text-muted">{a.program ? `${a.program} · ${a.level ?? ''}` : 'Not enrolled in a program'}</p>
                     </div>
-                    {a.membership && (
+                    {flags.billing() && a.membership && (
                       <Badge tone={MEMBERSHIP_TONE[a.membership.status as keyof typeof MEMBERSHIP_TONE] ?? 'neutral'} className="capitalize">
                         {a.membership.status.replace('_', ' ')}
                       </Badge>

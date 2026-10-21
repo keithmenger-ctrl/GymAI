@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth'
+import { flags } from '@/lib/flags'
 import { activityStats, financeStats, notAttendedSince, programCapacity, todayStats } from '@/lib/queries/dashboard'
 import { dueForReassessment, dueLabel } from '@/lib/queries/assessments'
 import { todaysSessions } from '@/lib/queries/sessions'
@@ -29,7 +30,7 @@ export default async function DashboardPage() {
   const s = await requireAdmin()
   const [today, sessions, capacity, activity, inactive, due, finance] = await Promise.all([
     todayStats(s), todaysSessions(s), programCapacity(s), activityStats(s), notAttendedSince(s, 14),
-    dueForReassessment(s), financeStats(s),
+    dueForReassessment(s), flags.billing() ? financeStats(s) : null,
   ])
   const now = new Date().getTime()
   const programs = [...new Set(capacity.map((c) => c.program))]
@@ -41,7 +42,9 @@ export default async function DashboardPage() {
           <p className="text-sm text-muted">{fmtWeekday(new Date(), s.timezone)}</p>
           <h1 className="text-2xl font-semibold tracking-tight">{s.orgName}</h1>
         </div>
-        <Link href="/assistant" className={buttonClass('secondary')}><Sparkles className="size-4" aria-hidden /> Ask the assistant</Link>
+        {flags.assistant() && (
+          <Link href="/assistant" className={buttonClass('secondary')}><Sparkles className="size-4" aria-hidden /> Ask the assistant</Link>
+        )}
       </div>
 
       {/* TODAY */}

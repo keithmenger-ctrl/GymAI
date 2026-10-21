@@ -13,7 +13,7 @@ import { cn } from '@/lib/cn'
 
 export const metadata = { title: 'Billing' }
 
-const STATUS_TONE = { active: 'ok', trialing: 'volt', past_due: 'bad', incomplete: 'warn', canceled: 'neutral' } as const
+const STATUS_TONE = { active: 'ok', trialing: 'accent', past_due: 'bad', incomplete: 'warn', canceled: 'neutral' } as const
 const STATUS_LABEL = { active: 'Active', trialing: 'Trialing', past_due: 'Past due', incomplete: 'Awaiting payment', canceled: 'Canceled' }
 const FILTERS = [['', 'All'], ['past_due', 'Past due'], ['active', 'Active'], ['incomplete', 'Awaiting payment'], ['canceled', 'Canceled']] as const
 

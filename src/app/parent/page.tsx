@@ -8,7 +8,7 @@ import { fmtShortDate, fmtTime, fmtWeekday } from '@/lib/format'
 
 export const metadata = { title: 'Home' }
 
-const MEMBERSHIP_TONE = { active: 'ok', trialing: 'volt', past_due: 'bad', canceled: 'neutral' } as const
+const MEMBERSHIP_TONE = { active: 'ok', trialing: 'accent', past_due: 'bad', canceled: 'neutral' } as const
 
 export default async function ParentHome() {
   const s = await requireRole('parent')
@@ -58,14 +58,14 @@ export default async function ParentHome() {
                     </div>
                   </dl>
                   {a.latest_note && (
-                    <blockquote className="mt-5 border-l-2 border-volt pl-3 text-sm">
+                    <blockquote className="mt-5 border-l-2 border-accent pl-3 text-sm">
                       {a.latest_note.body}
                       <footer className="mt-1 text-xs text-muted">Coach note · {fmtShortDate(a.latest_note.created_at, s.timezone)}</footer>
                     </blockquote>
                   )}
                 </div>
                 {a.latest_report && (
-                  <Link href={`/parent/reports/${a.latest_report.id}`} className="flex items-center justify-between border-t border-line bg-volt/30 px-5 py-4 active:bg-volt/50">
+                  <Link href={`/parent/reports/${a.latest_report.id}`} className="flex items-center justify-between border-t border-line bg-accent/60 px-5 py-4 active:bg-accent">
                     <span>
                       <span className="block text-xs font-medium uppercase tracking-wide text-muted">Latest progress report</span>
                       <span className="font-medium">{a.latest_report.title}</span>

@@ -6,7 +6,7 @@
   --ink: #0b0f14;
   --muted: #6b7280;
   --line: #e7e5e4;
-  --volt: #d6f24a;
+  --accent: #bfdbfe;
   --ok: #15803d;
   --warn: #b45309;
   --bad: #b91c1c;
@@ -18,7 +18,7 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
-  --color-volt: var(--volt);
+  --color-accent: var(--accent);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
   --color-bad: var(--bad);

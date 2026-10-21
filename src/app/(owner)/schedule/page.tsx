@@ -46,7 +46,7 @@ export default async function SchedulePage({ searchParams }: PageProps<'/schedul
           return (
             <section key={day}>
               <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
-                {dayLabel(day)} {isToday && <Badge tone="volt">Today</Badge>}
+                {dayLabel(day)} {isToday && <Badge tone="accent">Today</Badge>}
               </h2>
               {list.length === 0 ? (
                 <p className="rounded-xl border border-dashed border-line px-4 py-3 text-sm text-muted">No sessions</p>

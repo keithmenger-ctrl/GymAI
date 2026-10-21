@@ -1,6 +1,7 @@
 import { LogOut } from 'lucide-react'
 import { logout } from '@/lib/actions/auth'
 import type { Session } from '@/lib/auth'
+import { APP_NAME } from '@/lib/app-config'
 import { flags } from '@/lib/flags'
 import { FeedbackButton } from './feedback'
 
@@ -29,7 +30,7 @@ export function Wordmark({ org }: { org?: string }) {
   return (
     <div className="leading-tight">
       <p className="text-base font-semibold tracking-tight">
-        Academy<span className="rounded bg-volt px-1">OS</span>
+        {APP_NAME}
       </p>
       {org && <p className="truncate text-xs text-muted">{org}</p>}
     </div>

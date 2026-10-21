@@ -14,7 +14,7 @@ export function ImportForm() {
     return (
       <Card className="p-6">
         <p role="status" className="text-lg font-semibold">Imported {done.imported} {done.imported === 1 ? 'athlete' : 'athletes'}.</p>
-        {skipped > 0 && <p className="mt-1 text-sm text-muted">{skipped} rows were skipped (already in AcademyOS or had errors).</p>}
+        {skipped > 0 && <p className="mt-1 text-sm text-muted">{skipped} rows were skipped (already in the system or had errors).</p>}
         <div className="mt-4 flex gap-2">
           <Link href="/athletes" className={buttonClass()}>View athletes</Link>
           <Link href="/athletes/import" className={buttonClass('secondary')}>Import another file</Link>
@@ -74,7 +74,7 @@ export function ImportForm() {
                     <td className="px-3 py-2">{r.parent_name ?? '—'}{r.parent_email && <span className="block text-xs text-muted">{r.parent_email}</span>}</td>
                     <td className="px-3 py-2">
                       {r.errors.length ? <span className="text-bad">{r.errors.join('; ')}</span>
-                        : r.duplicate ? <span className="text-muted">Already in AcademyOS</span>
+                        : r.duplicate ? <span className="text-muted">Already imported</span>
                         : <span className="text-ok">Ready</span>}
                     </td>
                   </tr>

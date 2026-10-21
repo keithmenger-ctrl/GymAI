@@ -37,7 +37,7 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
           aria-current={isActive(path, i.href) ? 'page' : undefined}
           className={cn(
             'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-            isActive(path, i.href) ? 'bg-volt text-ink' : 'text-stone-600 hover:bg-stone-100 hover:text-ink',
+            isActive(path, i.href) ? 'bg-accent text-ink' : 'text-stone-600 hover:bg-stone-100 hover:text-ink',
           )}
         >
           <Icon name={i.icon} />
@@ -89,7 +89,7 @@ export function BottomTabs({ items }: { items: NavItem[] }) {
                   active ? 'text-ink' : 'text-muted',
                 )}
               >
-                <span className={cn('rounded-full px-4 py-1', active && 'bg-volt')}><Icon name={i.icon} className="size-5" /></span>
+                <span className={cn('rounded-full px-4 py-1', active && 'bg-accent')}><Icon name={i.icon} className="size-5" /></span>
                 {i.label}
               </Link>
             </li>

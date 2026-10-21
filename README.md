@@ -1,4 +1,4 @@
-# AcademyOS
+# Academy shell
 
 An operating system for independent sports-performance facilities, built around athlete development rather than just memberships and booking.
 
@@ -76,7 +76,7 @@ Anything not checked above is **not implemented**. Known limits: no native apps,
 Invites (parents, coaches, admins) and "Forgot password?" send one-time sign-in links when `SMTP_URL`, `MAIL_FROM` and `APP_URL` are set (any SMTP provider). The same link is always shown to the owner as a fallback. Locally, `scripts/dev-up.sh` starts an SMTP sink that stores mail in `/tmp/academyos-mail`.
 
 ## Importing athletes
-Athletes → **Import CSV** (owners/admins). Download the template or use any export with recognizable headers (e.g. "First Name", "DOB", "Parent Email"; unknown columns are ignored and listed). Dates can be `YYYY-MM-DD` or `M/D/YYYY`. Every row is validated in a preview (bad dates, unknown program/level, invalid emails, duplicates) before anything is saved. The import then re-parses the file server-side, imports only valid rows in one transaction, reuses parents by email, creates unknown sports, and skips athletes already in AcademyOS (same name, and matching or missing birthdate), so re-importing a file is safe.
+Athletes → **Import CSV** (owners/admins). Download the template or use any export with recognizable headers (e.g. "First Name", "DOB", "Parent Email"; unknown columns are ignored and listed). Dates can be `YYYY-MM-DD` or `M/D/YYYY`. Every row is validated in a preview (bad dates, unknown program/level, invalid emails, duplicates) before anything is saved. The import then re-parses the file server-side, imports only valid rows in one transaction, reuses parents by email, creates unknown sports, and skips athletes already in the system (same name, and matching or missing birthdate), so re-importing a file is safe.
 
 ## Pilot feedback and usage
 - Every shell has a **Send feedback** button (stored in `feedback` with page + role).

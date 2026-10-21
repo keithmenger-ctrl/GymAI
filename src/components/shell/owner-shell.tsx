@@ -25,7 +25,6 @@ export function OwnerShell({ session, children }: { session: Session; children: 
       <aside className="hidden print:!hidden border-r border-line bg-card md:flex md:flex-col md:gap-8 md:p-4">
         <div className="px-3 pt-2"><Wordmark org={session.orgName} /></div>
         <SidebarNav items={nav} />
-        <p className="mt-auto px-3 text-xs text-muted">MVP build</p>
       </aside>
       <div className="min-w-0">
         <header className="sticky top-0 z-10 border-b border-line bg-paper/90 backdrop-blur print:hidden">

@@ -22,7 +22,7 @@ export function DemoBar({ session }: { session: Session }) {
             <button
               aria-pressed={current === v.role}
               className={cn('rounded-full px-3 py-0.5 font-medium',
-                current === v.role ? 'bg-volt text-ink' : 'text-white hover:bg-white/10')}
+                current === v.role ? 'bg-accent text-ink' : 'text-white hover:bg-white/10')}
             >
               {v.label}
             </button>

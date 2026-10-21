@@ -8,7 +8,7 @@ import { fmtDate, money } from '@/lib/format'
 
 export const metadata = { title: 'Billing' }
 
-const TONE = { active: 'ok', trialing: 'volt', past_due: 'bad', incomplete: 'warn', canceled: 'neutral' } as const
+const TONE = { active: 'ok', trialing: 'accent', past_due: 'bad', incomplete: 'warn', canceled: 'neutral' } as const
 const LABEL = { active: 'Active', trialing: 'Trial', past_due: 'Past due', incomplete: 'Awaiting payment', canceled: 'Canceled' }
 
 export default async function ParentBilling({ searchParams }: PageProps<'/parent/billing'>) {

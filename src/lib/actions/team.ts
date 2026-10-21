@@ -8,6 +8,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import { passwordLink } from '@/lib/links'
 import { emailHtml, orgMayEmail, sendMail } from '@/lib/mail'
 import { track } from '@/lib/track'
+import { APP_NAME } from '@/lib/app-config'
 
 export type TeamState = { error?: string; message?: string; link?: string } | undefined
 
@@ -23,7 +24,7 @@ export async function addAdmin(_: TeamState, fd: FormData): Promise<TeamState> {
     email, email_confirm: true, user_metadata: { full_name: p.data.name },
   })
   if (error || !data.user) {
-    return { error: /already|registered|exists/i.test(error?.message ?? '') ? 'That email already has an AcademyOS account.' : (error?.message ?? 'Could not create the login.') }
+    return { error: /already|registered|exists/i.test(error?.message ?? '') ? `That email already has an account.` : (error?.message ?? 'Could not create the login.') }
   }
   const uid = data.user.id
   await withServiceRole(async (q) => {
@@ -35,9 +36,9 @@ export async function addAdmin(_: TeamState, fd: FormData): Promise<TeamState> {
   let message = `${p.data.name} was added as an admin. Share this one-time link so they can set a password.`
   if (willEmail) {
     try {
-      await sendMail(email, `You're now an admin of ${s.orgName} on AcademyOS`,
+      await sendMail(email, `You're now an admin of ${s.orgName} on ${APP_NAME}`,
         `${s.fullName} added you as an admin of ${s.orgName}. Set your password (the link works once): ${link}`,
-        emailHtml(`You're an admin of ${s.orgName}`, `${s.fullName} added you as an admin on AcademyOS. Set a password to get started.`, 'Set your password', link))
+        emailHtml(`You're an admin of ${s.orgName}`, `${s.fullName} added you as an admin on ${APP_NAME}. Set a password to get started.`, 'Set your password', link))
       message = `${p.data.name} was added as an admin and emailed a sign-in link.`
       await track(s, 'email_sent', { kind: 'invite_admin' })
     } catch {

@@ -32,7 +32,7 @@ export function Assistant({ suggestions, aiOn }: Props) {
         <Card className="p-6" aria-live="polite">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-semibold">{r.title}</h2>
-            {'source' in r && <Badge tone={r.source === 'claude' ? 'volt' : 'neutral'}>{r.source === 'claude' ? 'Drafted by Claude' : 'Template draft'}</Badge>}
+            {'source' in r && <Badge tone={r.source === 'claude' ? 'accent' : 'neutral'}>{r.source === 'claude' ? 'Drafted by Claude' : 'Template draft'}</Badge>}
           </div>
           {r.kind === 'help' && <p className="text-sm text-muted">{r.text}</p>}
           {r.kind === 'table' && (

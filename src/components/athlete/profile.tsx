@@ -125,7 +125,7 @@ export async function AthleteProfile({
         <Card className="p-5">
           <p className="text-xs font-medium uppercase tracking-wide text-muted">Current focus</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {focus.length ? focus.map((f) => <Badge key={f} tone="volt">{f}</Badge>) : <span className="text-sm text-muted">Nothing scheduled</span>}
+            {focus.length ? focus.map((f) => <Badge key={f} tone="accent">{f}</Badge>) : <span className="text-sm text-muted">Nothing scheduled</span>}
           </div>
         </Card>
       </div>
@@ -294,7 +294,7 @@ export async function AthleteProfile({
                     <p>{n.body}</p>
                     <p className="mt-1 flex items-center gap-2 text-xs text-muted">
                       {fmtShortDate(n.created_at, tz)}{n.author ? ` · ${n.author}` : ''}
-                      {viewer !== 'parent' && n.shareable && <Badge tone="volt">Shared with parent</Badge>}
+                      {viewer !== 'parent' && n.shareable && <Badge tone="accent">Shared with parent</Badge>}
                     </p>
                   </li>
                 ))}

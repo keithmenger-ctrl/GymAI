@@ -1,5 +1,6 @@
 import 'server-only'
 import nodemailer, { type Transporter } from 'nodemailer'
+import { APP_NAME } from '@/lib/app-config'
 import { withServiceRole } from '@/lib/db'
 
 /**
@@ -25,7 +26,7 @@ export function emailHtml(heading: string, body: string, cta: string, url: strin
   return `<!doctype html><html><body style="margin:0;background:#fafaf9;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#0b0f14">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="100%" style="max-width:480px;background:#fff;border:1px solid #e7e5e4;border-radius:12px"><tr><td style="padding:28px">
-<p style="margin:0 0 20px;font-weight:600">Academy<span style="background:#d6f24a;padding:0 4px;border-radius:4px">OS</span></p>
+<p style="margin:0 0 20px;font-weight:600">${esc(APP_NAME)}</p>
 <h1 style="margin:0 0 12px;font-size:20px">${esc(heading)}</h1>
 <p style="margin:0 0 24px;line-height:1.5;color:#374151">${esc(body)}</p>
 <a href="${esc(url)}" style="display:inline-block;background:#0b0f14;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600">${esc(cta)}</a>

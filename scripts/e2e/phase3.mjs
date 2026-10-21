@@ -4,7 +4,7 @@ const path = (page) => new URL(page.url()).pathname
 const stamp = Date.now().toString().slice(-6)
 
 const { browser, page, errors } = await launch()
-await login(page, 'owner@vegaselite.test')
+await login(page, 'owner@demo-academy.test')
 
 // list, search, filter
 await page.goto(`${BASE}/athletes`)
@@ -31,7 +31,7 @@ check('profile: program + level', txt.includes('Youth Speed Development') && txt
 check('profile: attendance x / y sessions', /\d+\s*\/\s*\d+ sessions/.test(txt))
 check('profile: assessment progress arrows', txt.includes('→'))
 check('profile: has timeline, notes, history', ['Progress timeline', 'Coach notes', 'Assessment history', 'Recent attendance'].every((t) => txt.includes(t)))
-check('profile: timeline shows joined', txt.includes('Joined Vegas Elite Performance'))
+check('profile: timeline shows joined', txt.includes('Joined Sample Facility'))
 await page.screenshot({ path: '/tmp/shot-profile.png', fullPage: true })
 
 // create
@@ -106,7 +106,7 @@ check('invite: existing parent gets fresh link', (await page.locator('input[aria
 // coach view
 {
   const c = await launch({ width: 390, height: 844 })
-  await login(c.page, 'keith@vegaselite.test')
+  await login(c.page, 'keith@demo-academy.test')
   await c.page.goto(`${BASE}/coach/athletes`)
   check('coach: sees athletes list', (await c.page.locator('main a').count()) >= 30)
   await c.page.goto(`${BASE}/coach/athletes?q=Johnny`)

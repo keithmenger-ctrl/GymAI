@@ -1,7 +1,7 @@
--- Demo data: "Vegas Elite Performance". Deterministic (fixed random seed), relative to today's date.
+-- Optional demo data: "Sample Facility" (not run by migrations; load only into dev/demo databases). Deterministic (fixed random seed), relative to today's date.
 -- Logins (password for all: academyos-demo):
---   owner@vegaselite.test  keith@vegaselite.test  mike@vegaselite.test  sarah@vegaselite.test
---   parent1@vegaselite.test .. parent6@vegaselite.test
+--   owner@demo-academy.test  keith@demo-academy.test  mike@demo-academy.test  sarah@demo-academy.test
+--   parent1@demo-academy.test .. parent6@demo-academy.test
 
 create or replace function pg_temp.seed_user(p_email text, p_name text) returns uuid language plpgsql as $$
 declare v_id uuid := gen_random_uuid();
@@ -25,13 +25,13 @@ end $$;
 do $$
 declare v_org uuid; v_owner uuid;
 begin
-  v_owner := pg_temp.seed_user('owner@vegaselite.test', 'Keith Owner');
-  insert into organizations (name, is_demo) values ('Vegas Elite Performance', true) returning id into v_org;
+  v_owner := pg_temp.seed_user('owner@demo-academy.test', 'Demo Owner');
+  insert into organizations (name, is_demo) values ('Sample Facility', true) returning id into v_org;
   insert into user_roles (user_id, organization_id, role, can_view_finance) values (v_owner, v_org, 'owner', true);
   perform seed_demo_org(
     v_org,
-    array[pg_temp.seed_user('keith@vegaselite.test', 'Coach Keith'),
-          pg_temp.seed_user('mike@vegaselite.test', 'Coach Mike'),
-          pg_temp.seed_user('sarah@vegaselite.test', 'Coach Sarah')],
-    array(select pg_temp.seed_user('parent' || i || '@vegaselite.test', 'Parent ' || i) from generate_series(1, 6) i order by i));
+    array[pg_temp.seed_user('keith@demo-academy.test', 'Coach Keith'),
+          pg_temp.seed_user('mike@demo-academy.test', 'Coach Mike'),
+          pg_temp.seed_user('sarah@demo-academy.test', 'Coach Sarah')],
+    array(select pg_temp.seed_user('parent' || i || '@demo-academy.test', 'Parent ' || i) from generate_series(1, 6) i order by i));
 end $$;

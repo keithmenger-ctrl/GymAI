@@ -7,7 +7,7 @@ const stamp = Date.now().toString().slice(-5)
 // ---------------- owner: metrics + due list
 {
   const { browser, page, errors } = await launch()
-  await login(page, 'owner@vegaselite.test')
+  await login(page, 'owner@demo-academy.test')
   await page.goto(`${BASE}/assessments`)
   let txt = await page.innerText('main')
   check('metrics listed', ['10 Yard Sprint', 'Vertical Jump', 'Broad Jump', 'Pro Agility', 'Push-ups'].every((m) => txt.includes(m)))
@@ -39,7 +39,7 @@ const stamp = Date.now().toString().slice(-5)
 // ---------------- coach: record from today's session
 {
   const { browser, page, errors } = await launch({ width: 390, height: 844 })
-  await login(page, 'keith@vegaselite.test')
+  await login(page, 'keith@demo-academy.test')
   await page.locator('main a:has-text("Level 1 ·")').first().click()
   await page.waitForURL(/\/coach\/sessions\//)
   await page.click('a:has-text("Record assessments for this group")')
@@ -96,7 +96,7 @@ const stamp = Date.now().toString().slice(-5)
 // ---------------- parent cannot record
 {
   const { browser, page } = await launch({ width: 390, height: 844 })
-  await login(page, 'parent2@vegaselite.test')
+  await login(page, 'parent2@demo-academy.test')
   await page.goto(`${BASE}/coach/assessments`)
   check('parent blocked from recorder', path(page) === '/parent')
   await page.goto(`${BASE}/assessments`)

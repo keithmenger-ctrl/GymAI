@@ -11,7 +11,7 @@ const future = (level) => `select count(*)::int n from session_athletes sa join 
 const past = `select count(*)::int n from session_athletes sa join sessions s on s.id = sa.session_id where sa.athlete_id = $1 and s.starts_at < now()`
 
 const { browser, page, errors } = await launch()
-await login(page, 'owner@vegaselite.test')
+await login(page, 'owner@demo-academy.test')
 
 // 1. advance a Level 1 speed athlete
 const [athlete] = (await db.query(`select a.id from athletes a join program_levels l on l.id = a.current_level_id

@@ -34,7 +34,7 @@ Single Next.js (App Router, TypeScript, Tailwind) monolith on Supabase (Postgres
 Migrations live in `supabase/migrations`:
 `organizations, profiles, user_roles, locations, sports, coaches, guardians, athletes, athlete_guardians, programs, program_levels, curriculum_items, sessions, session_athletes, attendance, coach_notes, assessment_types, assessment_results, athlete_progress_events, membership_plans, memberships, payments, progress_reports`.
 
-Seed data (`supabase/seed.sql`): "Vegas Elite Performance", 3 programs × 3 levels, 36 curriculum items, 3 coaches, 30 athletes, 26 guardians, ~140 sessions (8 weeks back through next week, pattern anchored to *today* so every coach has sessions on demo day), attendance, notes, ~400 assessment results, memberships and payments. Demo logins (password `academyos-demo`): `owner@`, `keith@`, `mike@`, `sarah@`, `parent1@`…`parent6@` `vegaselite.test`.
+Seed data (`supabase/seed.sql`): "Sample Facility", 3 programs × 3 levels, 36 curriculum items, 3 coaches, 30 athletes, 26 guardians, ~140 sessions (8 weeks back through next week, pattern anchored to *today* so every coach has sessions on demo day), attendance, notes, ~400 assessment results, memberships and payments. Demo logins (password `academyos-demo`): `owner@`, `keith@`, `mike@`, `sarah@`, `parent1@`…`parent6@` `demo-academy.test`. The seed is optional and is not run by migrations; load it only into dev/demo databases.
 
 ## Testing the database locally
 Needs a local Postgres 16 (no Supabase required; an auth stub stands in for Supabase's `auth` schema):
@@ -85,9 +85,9 @@ Athletes → **Import CSV** (owners/admins). Download the template or use any ex
 - Not implemented: emailing feedback to the founder (needs a mail provider).
 
 ## Demo academies
-- Signup has **Start with demo data** (on by default). It creates the prospect's own organization, then fills it with `seed_demo_org()` (migration 0007): 30 athletes, 3 coaches, 6 parents, curriculum, ~8 weeks of history anchored to *today*. Each prospect gets an isolated copy.
+- Signup has **Start with demo data** (unchecked by default; only shown when `FEATURE_DEMO=true`). It creates the prospect's own organization, then fills it with `seed_demo_org()` (migrations 0007 and 0011): 30 athletes, 3 coaches, 6 parents, curriculum, ~8 weeks of history anchored to *today*. Each prospect gets an isolated copy.
 - Demo orgs (`organizations.is_demo`) show a **Demo academy · view as Owner / Coach / Parent** bar. Switching signs in as that org's demo user through a one-time link, so every view is the real one (same routes, same RLS). Non-demo orgs never see the bar, and the switch action refuses them.
-- Demo coach/parent logins get random passwords and `@academyos.demo` addresses; they are only reachable through the switcher. `supabase/seed.sql` creates the shared "Vegas Elite Performance" demo org the same way (with the fixed `@vegaselite.test` logins).
+- Demo coach/parent logins get random passwords and `@academyos.demo` addresses; they are only reachable through the switcher. `supabase/seed.sql` creates the shared "Sample Facility" demo org the same way (with the fixed `@demo-academy.test` logins).
 
 ## Billing
 - **Dev mode** (no `STRIPE_SECRET_KEY`): memberships/payments are database rows; the Billing page shows a "Dev mode" banner and "Sim. paid / Sim. failed" buttons to demo past-due flows. Parents see status and payment history but no pay button.

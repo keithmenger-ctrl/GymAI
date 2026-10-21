@@ -16,7 +16,7 @@ const file = `/tmp/import-${stamp}.csv`
 fs.writeFileSync(file, csv)
 
 const { browser, page, errors } = await launch({ width: 1280, height: 900 })
-await login(page, 'owner@vegaselite.test')
+await login(page, 'owner@demo-academy.test')
 await page.goto(`${BASE}/athletes`)
 const before = await page.locator('tbody tr').count()
 await page.click('a:text("Import CSV")')
@@ -54,7 +54,7 @@ await page.click('tbody tr a')
 await page.waitForURL(/athletes\//)
 const p = await page.innerText('main')
 check('imported athlete: program, level, trial/active, parent linked', p.includes('Youth Speed Development') && p.includes('Level 2') && p.includes("Sam O'Neil") && p.includes(`sam${stamp}@example.com`))
-check('imported athlete: joined milestone', p.includes('Joined Vegas Elite Performance'))
+check('imported athlete: joined milestone', p.includes('Joined Sample Facility'))
 
 // re-import is idempotent (duplicates skipped)
 await page.goto(`${BASE}/athletes/import`)
@@ -68,7 +68,7 @@ await browser.close()
 // coach cannot import
 {
   const c = await launch()
-  await login(c.page, 'keith@vegaselite.test')
+  await login(c.page, 'keith@demo-academy.test')
   await c.page.goto(`${BASE}/athletes/import`)
   check('coach blocked from import', new URL(c.page.url()).pathname === '/coach/today')
   const r = await c.page.goto(`${BASE}/athletes/import/template`)

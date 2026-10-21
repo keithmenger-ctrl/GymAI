@@ -6,7 +6,7 @@ const path = (p) => new URL(p.url()).pathname
 // ---------------- coach on a phone
 {
   const { browser, page, errors } = await launch({ width: 390, height: 844 })
-  await login(page, 'keith@vegaselite.test')
+  await login(page, 'keith@demo-academy.test')
   let txt = await page.innerText('main')
   check('today: lists Keith\'s sessions', txt.includes('Youth Speed Development') && txt.includes('Level 1 · Acceleration Mechanics') && txt.includes('Level 2 ·'))
   check('today: only own sessions', !txt.includes('Baseball Performance'))
@@ -89,7 +89,7 @@ const path = (p) => new URL(p.url()).pathname
 {
   const { browser, page, errors } = await launch()
   page.on('dialog', (d) => d.accept())
-  await login(page, 'owner@vegaselite.test')
+  await login(page, 'owner@demo-academy.test')
   await page.goto(`${BASE}/schedule`)
   let txt = await page.innerText('main')
   check('schedule: week view with Today badge', txt.includes('Today') && /\d+ sessions/.test(txt))

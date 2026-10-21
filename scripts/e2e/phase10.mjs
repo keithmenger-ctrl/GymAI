@@ -2,7 +2,7 @@
 import { launch, login, check, done } from './lib.mjs'
 
 const { browser, page, errors } = await launch({ width: 1366, height: 900 })
-await login(page, 'owner@vegaselite.test')
+await login(page, 'owner@demo-academy.test')
 const txt = await page.innerText('main')
 check('today stats', ['SESSIONS TODAY', 'ATHLETES SCHEDULED', 'ATTENDANCE TODAY', 'COACHES WORKING'].every((t) => txt.toUpperCase().includes(t)))
 check('today: 3 coaches working', /COACHES WORKING\s*3/i.test(txt))

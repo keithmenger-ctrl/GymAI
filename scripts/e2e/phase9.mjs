@@ -8,7 +8,7 @@ let reportUrl
 {
   const { browser, page, errors } = await launch()
   page.on('dialog', (d) => d.accept())
-  await login(page, 'owner@vegaselite.test')
+  await login(page, 'owner@demo-academy.test')
   await page.goto(`${BASE}/athletes?q=Johnny`)
   await page.click('tbody tr a')
   await page.waitForURL(/\/athletes\/[0-9a-f-]{36}$/)
@@ -43,7 +43,7 @@ let reportUrl
   // parent can't see a draft yet (check before sharing)
   {
     const p = await launch({ width: 390, height: 844 })
-    await login(p.page, 'parent1@vegaselite.test')
+    await login(p.page, 'parent1@demo-academy.test')
     await p.page.goto(reportUrl.replace('/reports/', '/parent/reports/'))
     check('draft: parent blocked, report text not rendered', await isBlocked(p.page, ['outstanding this block']))
     await p.browser.close()
@@ -62,7 +62,7 @@ let reportUrl
 // ---------------- parent sees it
 {
   const { browser, page, errors } = await launch({ width: 390, height: 844 })
-  await login(page, 'parent1@vegaselite.test')
+  await login(page, 'parent1@demo-academy.test')
   let txt = await page.innerText('main')
   check('parent home: latest report link', /latest progress report/i.test(txt))
   await page.click('a:has-text("progress report")')
@@ -80,7 +80,7 @@ let reportUrl
 {
   const { browser, page } = await launch({ width: 390, height: 844 })
   page.on('dialog', (d) => d.accept())
-  await login(page, 'keith@vegaselite.test')
+  await login(page, 'keith@demo-academy.test')
   await page.goto(`${BASE}/coach/athletes?q=Johnny`)
   await page.locator('main a').first().click()
   await page.waitForURL(/\/coach\/athletes\//)
@@ -94,7 +94,7 @@ let reportUrl
   await page.waitForSelector('button:text("Share with parent")')
   await browser.close()
   const p = await launch({ width: 390, height: 844 })
-  await login(p.page, 'parent1@vegaselite.test')
+  await login(p.page, 'parent1@demo-academy.test')
   await p.page.goto(reportUrl.replace('/reports/', '/parent/reports/'))
   check('unshare: parent loses access, report text not rendered', await isBlocked(p.page, ['outstanding this block']))
   await p.browser.close()
@@ -103,13 +103,13 @@ let reportUrl
 // ---------------- another parent can't read it even when shared
 {
   const { browser, page } = await launch()
-  await login(page, 'owner@vegaselite.test')
+  await login(page, 'owner@demo-academy.test')
   await page.goto(reportUrl)
   await page.click('button:text("Share with parent")')
   await page.waitForSelector('button:text("Unshare")')
   await browser.close()
   const p = await launch({ width: 390, height: 844 })
-  await login(p.page, 'parent2@vegaselite.test')
+  await login(p.page, 'parent2@demo-academy.test')
   await p.page.goto(reportUrl.replace('/reports/', '/parent/reports/'))
   check('isolation: other parent blocked on shared report, text not rendered', await isBlocked(p.page, ['outstanding this block', 'Johnny Alvarez']))
   await p.browser.close()

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { requireAdmin } from '@/lib/auth'
 import { sessionsBetween, weekStart } from '@/lib/queries/sessions'
-import { Badge, Card, PageHeader, buttonClass } from '@/components/ui'
+import { Badge, Card, EmptyState, PageHeader, buttonClass } from '@/components/ui'
 import { attendanceLabel } from '@/components/session/session-card'
 import { fmtTime } from '@/lib/format'
 
@@ -39,6 +39,13 @@ export default async function SchedulePage({ searchParams }: PageProps<'/schedul
           </>
         }
       />
+      {sessions.length === 0 ? (
+        <EmptyState
+          title="No sessions this week"
+          body="Schedule a session to put it on the calendar and take attendance."
+          action={<Link href={`/schedule/new?date=${monday > today ? monday : today}`} className={buttonClass()}>New session</Link>}
+        />
+      ) : (
       <div className="space-y-6">
         {days.map((day) => {
           const list = sessions.filter((x) => localDate(x.starts_at) === day)
@@ -73,6 +80,7 @@ export default async function SchedulePage({ searchParams }: PageProps<'/schedul
           )
         })}
       </div>
+      )}
     </>
   )
 }

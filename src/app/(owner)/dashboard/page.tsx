@@ -4,7 +4,7 @@ import { flags } from '@/lib/flags'
 import { activityStats, financeStats, notAttendedSince, programCapacity, todayStats } from '@/lib/queries/dashboard'
 import { dueForReassessment, dueLabel } from '@/lib/queries/assessments'
 import { todaysSessions } from '@/lib/queries/sessions'
-import { Badge, Card, Stat, buttonClass } from '@/components/ui'
+import { Badge, Card, EmptyState, Stat, buttonClass } from '@/components/ui'
 import { Sparkles } from 'lucide-react'
 import { attendanceLabel } from '@/components/session/session-card'
 import { fmtTime, fmtWeekday, money } from '@/lib/format'
@@ -58,7 +58,11 @@ export default async function DashboardPage() {
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Panel title="Today's sessions" href="/schedule" linkLabel="Schedule">
           {sessions.length === 0 ? (
-            <p className="text-sm text-muted">No sessions today.</p>
+            <EmptyState
+              title="No sessions today"
+              body="Sessions you schedule for today show up here."
+              action={<Link href="/schedule/new" className={buttonClass()}>New session</Link>}
+            />
           ) : (
             <ul className="divide-y divide-line">
               {sessions.map((c) => {
@@ -81,6 +85,13 @@ export default async function DashboardPage() {
         </Panel>
 
         <Panel title="Program capacity" href="/programs" linkLabel="Programs">
+          {programs.length === 0 ? (
+            <EmptyState
+              title="No program levels yet"
+              body="Add levels to an active program to track enrollment against capacity."
+              action={<Link href="/programs" className={buttonClass()}>Programs</Link>}
+            />
+          ) : (
           <div className="space-y-5">
             {programs.map((p) => {
               const rows = capacity.filter((c) => c.program === p)
@@ -109,6 +120,7 @@ export default async function DashboardPage() {
               )
             })}
           </div>
+          )}
         </Panel>
 
         <Panel title="Athlete activity" href="/athletes" linkLabel="Athletes">
@@ -119,7 +131,9 @@ export default async function DashboardPage() {
           </div>
           <h3 className="mb-2 mt-5 text-sm font-medium">Haven&apos;t attended in 14+ days <span className="text-muted">({inactive.length})</span></h3>
           {inactive.length === 0 ? (
-            <p className="text-sm text-muted">Everyone has trained in the last two weeks.</p>
+            <p className="text-sm text-muted">
+              {activity.active + activity.trial === 0 ? 'No active athletes.' : 'Everyone has trained in the last two weeks.'}
+            </p>
           ) : (
             <ul className="divide-y divide-line text-sm">
               {inactive.slice(0, 6).map((a) => (

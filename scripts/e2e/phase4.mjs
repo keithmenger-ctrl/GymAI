@@ -94,7 +94,7 @@ check('archived program hidden from athlete form', !(await page.locator('select[
 // coach blocked
 {
   const c = await launch({ width: 390, height: 844 })
-  await login(c.page, 'keith@demo-academy.test')
+  await login(c.page, 'alex@demo-academy.test')
   await c.page.goto(`${BASE}/programs`)
   check('coach cannot open programs', path(c.page) === '/coach/today', path(c.page))
   await c.browser.close()

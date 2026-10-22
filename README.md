@@ -34,7 +34,7 @@ Single Next.js (App Router, TypeScript, Tailwind) monolith on Supabase (Postgres
 Migrations live in `supabase/migrations`:
 `organizations, profiles, user_roles, locations, sports, coaches, guardians, athletes, athlete_guardians, programs, program_levels, curriculum_items, sessions, session_athletes, attendance, coach_notes, assessment_types, assessment_results, athlete_progress_events, membership_plans, memberships, payments, progress_reports`.
 
-Seed data (`supabase/seed.sql`): "Sample Facility", 3 programs × 3 levels, 36 curriculum items, 3 coaches, 30 athletes, 26 guardians, ~140 sessions (8 weeks back through next week, pattern anchored to *today* so every coach has sessions on demo day), attendance, notes, ~400 assessment results, memberships and payments. Demo logins (password `academyos-demo`): `owner@`, `keith@`, `mike@`, `sarah@`, `parent1@`…`parent6@` `demo-academy.test`. The seed is optional and is not run by migrations; load it only into dev/demo databases.
+Seed data (`supabase/seed.sql`): "Sample Facility", 3 programs × 3 levels, 36 curriculum items, 3 coaches, 30 athletes, 26 guardians, ~140 sessions (8 weeks back through next week, pattern anchored to *today* so every coach has sessions on demo day), attendance, notes, ~400 assessment results, memberships and payments. Demo logins (password `academyos-demo`): `owner@`, `alex@`, `mike@`, `sarah@`, `parent1@`…`parent6@` `demo-academy.test`. The seed is optional and is not run by migrations; load it only into dev/demo databases.
 
 ## Testing the database locally
 Needs a local Postgres 16 (no Supabase required; an auth stub stands in for Supabase's `auth` schema):

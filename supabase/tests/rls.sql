@@ -77,7 +77,7 @@ begin
   perform t.check('owner A sees org A only', (select count(*) from organizations) = 1);
 
   -- ================= coach
-  perform t.act_as('keith@demo-academy.test');
+  perform t.act_as('alex@demo-academy.test');
   perform t.check('coach sees athletes', (select count(*) from athletes) = 30);
   perform t.check('coach sees sessions', (select count(*) from sessions) > 0);
   perform t.check('coach cannot see memberships', (select count(*) from memberships) = 0);
@@ -219,7 +219,7 @@ begin
   perform t.check('parent still reads own athlete row', (select count(*) from athletes) = 1);
 
   -- ================= pilot tables: write-only, own org + self only
-  perform t.act_as('keith@demo-academy.test');
+  perform t.act_as('alex@demo-academy.test');
   insert into usage_events (organization_id, user_id, role, name) values (a_org, auth.uid(), 'coach', 'login');
   insert into feedback (organization_id, user_id, role, body) values (a_org, auth.uid(), 'coach', 'love it');
   perform t.check('staff can write own usage event + feedback', true);

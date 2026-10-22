@@ -44,7 +44,7 @@ let johnnyUrl, otherAthleteUrl
 // ---------------- coach can add milestone, cannot advance level
 {
   const { browser, page } = await launch({ width: 390, height: 844 })
-  await login(page, 'keith@demo-academy.test')
+  await login(page, 'alex@demo-academy.test')
   await page.goto(johnnyUrl.replace('/athletes/', '/coach/athletes/'))
   check('coach: no advance button', (await page.locator('button:has-text("Advance to")').count()) === 0)
   check('coach: can add milestone', (await page.locator('button:text("Add milestone")').count()) === 1)

@@ -6,9 +6,9 @@ const path = (p) => new URL(p.url()).pathname
 // ---------------- coach on a phone
 {
   const { browser, page, errors } = await launch({ width: 390, height: 844 })
-  await login(page, 'keith@demo-academy.test')
+  await login(page, 'alex@demo-academy.test')
   let txt = await page.innerText('main')
-  check('today: lists Keith\'s sessions', txt.includes('Youth Speed Development') && txt.includes('Level 1 · Acceleration Mechanics') && txt.includes('Level 2 ·'))
+  check('today: lists Alex\'s sessions', txt.includes('Youth Speed Development') && txt.includes('Level 1 · Acceleration Mechanics') && txt.includes('Level 2 ·'))
   check('today: only own sessions', !txt.includes('Baseball Performance'))
   check('today: shows athlete counts', /\d+ athletes/.test(txt))
   await page.screenshot({ path: '/tmp/shot-today.png' })
@@ -93,7 +93,7 @@ const path = (p) => new URL(p.url()).pathname
   await page.goto(`${BASE}/schedule`)
   let txt = await page.innerText('main')
   check('schedule: week view with Today badge', txt.includes('Today') && /\d+ sessions/.test(txt))
-  check('schedule: shows coaches + capacity', txt.includes('Coach Keith') && /\d+\/\d+/.test(txt))
+  check('schedule: shows coaches + capacity', txt.includes('Coach Alex') && /\d+\/\d+/.test(txt))
   await page.click('a[aria-label="Previous week"]')
   await page.waitForURL(/week=/)
   check('schedule: previous week has completed attendance', (await page.innerText('main')).includes('attended'))
@@ -151,7 +151,7 @@ const path = (p) => new URL(p.url()).pathname
   // coaches page + coach invite
   await page.goto(`${BASE}/coaches`)
   txt = await page.innerText('main')
-  check('coaches: lists seeded coaches with today counts', ['Coach Keith', 'Coach Mike', 'Coach Sarah'].every((n) => txt.includes(n)) && txt.includes('today'))
+  check('coaches: lists seeded coaches with today counts', ['Coach Alex', 'Coach Mike', 'Coach Sarah'].every((n) => txt.includes(n)) && txt.includes('today'))
   const stamp = Date.now().toString().slice(-6)
   await page.fill('form:has(button:text("Add coach")) input[name=name]', `Coach Test${stamp}`)
   await page.fill('form:has(button:text("Add coach")) input[name=email]', `coach${stamp}@example.com`)

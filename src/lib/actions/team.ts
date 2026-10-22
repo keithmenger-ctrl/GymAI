@@ -9,6 +9,7 @@ import { passwordLink } from '@/lib/links'
 import { emailHtml, orgMayEmail, sendMail } from '@/lib/mail'
 import { track } from '@/lib/track'
 import { APP_NAME } from '@/lib/app-config'
+import { requireFlag } from '@/lib/flags'
 
 export type TeamState = { error?: string; message?: string; link?: string } | undefined
 
@@ -60,6 +61,7 @@ export async function removeAdmin(userId: string) {
 
 /** Owners/admins: let a coach see membership/billing status (read-only). Enforced by RLS via can_see_finance(). */
 export async function setCoachFinance(coachId: string, allow: boolean) {
+  requireFlag('billing')
   const s = await requireAdmin()
   if (!z.uuid().safeParse(coachId).success) return
   // Resolve the coach under RLS first (proves it belongs to this org), then update the role with the service role.

@@ -25,7 +25,7 @@ check('timeline milestone uses this org name', (await page.innerText('main')).in
 // switch to coach
 await Promise.all([page.waitForURL('**/coach/today'), page.click('button:text-is("Coach")')])
 t = await page.innerText('body')
-check('coach view: own sessions today', t.includes('Coach Keith') && t.includes('Youth Speed Development'))
+check('coach view: own sessions today', t.includes('Coach Alex') && t.includes('Youth Speed Development'))
 await page.goto(`${BASE}/dashboard`)
 check('as coach, owner area is blocked (real role)', path(page) === '/coach/today')
 // switch to parent

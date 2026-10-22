@@ -21,7 +21,7 @@ let link
   check('admin listed', (await page.innerText('main')).includes(`Alex Admin${stamp}`))
   // duplicate
   await page.fill('form:has(button:text("Add admin")) input[name=name]', 'Dup')
-  await page.fill('form:has(button:text("Add admin")) input[name=email]', 'keith@demo-academy.test')
+  await page.fill('form:has(button:text("Add admin")) input[name=email]', 'alex@demo-academy.test')
   await page.click('button:text("Add admin")')
   await page.waitForSelector('form [role=alert]')
   check('existing account rejected', (await page.innerText('form [role=alert]')).includes('already has an AcademyOS account'))

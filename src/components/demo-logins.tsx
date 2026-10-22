@@ -2,7 +2,7 @@
 
 const DEMO = [
   { label: 'Owner', email: 'owner@demo-academy.test' },
-  { label: 'Coach', email: 'keith@demo-academy.test' },
+  { label: 'Coach', email: 'alex@demo-academy.test' },
   { label: 'Parent', email: 'parent1@demo-academy.test' },
 ]
 

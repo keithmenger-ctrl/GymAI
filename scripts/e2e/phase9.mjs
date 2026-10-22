@@ -80,7 +80,7 @@ let reportUrl
 {
   const { browser, page } = await launch({ width: 390, height: 844 })
   page.on('dialog', (d) => d.accept())
-  await login(page, 'keith@demo-academy.test')
+  await login(page, 'alex@demo-academy.test')
   await page.goto(`${BASE}/coach/athletes?q=Johnny`)
   await page.locator('main a').first().click()
   await page.waitForURL(/\/coach\/athletes\//)

@@ -1,6 +1,6 @@
 -- Optional demo data: "Sample Facility" (not run by migrations; load only into dev/demo databases). Deterministic (fixed random seed), relative to today's date.
 -- Logins (password for all: academyos-demo):
---   owner@demo-academy.test  keith@demo-academy.test  mike@demo-academy.test  sarah@demo-academy.test
+--   owner@demo-academy.test  alex@demo-academy.test  mike@demo-academy.test  sarah@demo-academy.test
 --   parent1@demo-academy.test .. parent6@demo-academy.test
 
 create or replace function pg_temp.seed_user(p_email text, p_name text) returns uuid language plpgsql as $$
@@ -30,7 +30,7 @@ begin
   insert into user_roles (user_id, organization_id, role, can_view_finance) values (v_owner, v_org, 'owner', true);
   perform seed_demo_org(
     v_org,
-    array[pg_temp.seed_user('keith@demo-academy.test', 'Coach Keith'),
+    array[pg_temp.seed_user('alex@demo-academy.test', 'Coach Alex'),
           pg_temp.seed_user('mike@demo-academy.test', 'Coach Mike'),
           pg_temp.seed_user('sarah@demo-academy.test', 'Coach Sarah')],
     array(select pg_temp.seed_user('parent' || i || '@demo-academy.test', 'Parent ' || i) from generate_series(1, 6) i order by i));

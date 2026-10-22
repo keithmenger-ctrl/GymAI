@@ -39,7 +39,7 @@ const stamp = Date.now().toString().slice(-5)
 // ---------------- coach: record from today's session
 {
   const { browser, page, errors } = await launch({ width: 390, height: 844 })
-  await login(page, 'keith@demo-academy.test')
+  await login(page, 'alex@demo-academy.test')
   await page.locator('main a:has-text("Level 1 ·")').first().click()
   await page.waitForURL(/\/coach\/sessions\//)
   await page.click('a:has-text("Record assessments for this group")')

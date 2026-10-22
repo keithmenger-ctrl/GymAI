@@ -20,9 +20,9 @@ check('sparklines on profile, one per multi-result metric', (await sparks.count(
 check('sparkline has an accessible summary', /sec on /.test(await sparks.first().getAttribute('aria-label')))
 await browser.close()
 
-// Ethan Brooks is seeded as overdue and is on Coach Keith's Speed Level 1 roster today.
+// Ethan Brooks is seeded as overdue and is on Coach Alex's Speed Level 1 roster today.
 const c = await launch({ width: 390, height: 844 })
-await login(c.page, 'keith@demo-academy.test')
+await login(c.page, 'alex@demo-academy.test')
 await c.page.locator('main a:has-text("Level 1 ·")').first().click()
 await c.page.waitForURL(/coach\/sessions/)
 await c.page.waitForSelector('[role=group][aria-label="Attendance for Ethan Brooks"]')

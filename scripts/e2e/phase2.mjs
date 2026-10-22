@@ -35,7 +35,7 @@ const path = (page) => new URL(page.url()).pathname
 // coach (phone)
 {
   const { browser, page } = await launch({ width: 390, height: 844 })
-  await login(page, 'keith@demo-academy.test')
+  await login(page, 'alex@demo-academy.test')
   check('coach lands on /coach/today', path(page) === '/coach/today', path(page))
   check('coach bottom tabs (3)', (await page.locator('nav[aria-label=Primary] a').count()) === 3)
   await page.goto(`${BASE}/dashboard`)

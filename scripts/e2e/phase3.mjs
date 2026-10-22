@@ -106,7 +106,7 @@ check('invite: existing parent gets fresh link', (await page.locator('input[aria
 // coach view
 {
   const c = await launch({ width: 390, height: 844 })
-  await login(c.page, 'keith@demo-academy.test')
+  await login(c.page, 'alex@demo-academy.test')
   await c.page.goto(`${BASE}/coach/athletes`)
   check('coach: sees athletes list', (await c.page.locator('main a').count()) >= 30)
   await c.page.goto(`${BASE}/coach/athletes?q=Johnny`)

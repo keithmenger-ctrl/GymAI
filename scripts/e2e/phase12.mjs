@@ -56,7 +56,7 @@ await browser.close()
 // coach can't use it
 {
   const c = await launch({ width: 390, height: 844 })
-  await login(c.page, 'keith@demo-academy.test')
+  await login(c.page, 'alex@demo-academy.test')
   await c.page.goto(`${BASE}/assistant`)
   check('coach blocked from assistant', path(c.page) === '/coach/today')
   await c.browser.close()

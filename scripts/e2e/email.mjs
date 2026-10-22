@@ -41,7 +41,7 @@ const who = `resetme${Date.now().toString().slice(-7)}@example.com`
   await page.click('button[type=submit]')
   await page.waitForSelector('[role=status]')
   const generic = await page.innerText('[role=status]')
-  check('generic confirmation shown', generic.includes('If that email has an AcademyOS account'))
+  check('generic confirmation shown', generic.includes('If that email has an account'))
   const mail = await waitMail(who, seen)
   check('reset email delivered', Boolean(mail) && mail.subject === 'Reset your AcademyOS password')
   const link = linkIn(mail)

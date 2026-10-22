@@ -24,7 +24,7 @@ let link
   await page.fill('form:has(button:text("Add admin")) input[name=email]', 'alex@demo-academy.test')
   await page.click('button:text("Add admin")')
   await page.waitForSelector('form [role=alert]')
-  check('existing account rejected', (await page.innerText('form [role=alert]')).includes('already has an AcademyOS account'))
+  check('existing account rejected', (await page.innerText('form [role=alert]')).includes('already has an account'))
   // athlete profile shows membership to owner
   await page.goto(`${BASE}/athletes?q=Johnny`); await page.click('tbody tr a'); await page.waitForURL(/athletes\//)
   check('owner sees membership card', (await page.innerText('main')).includes('Speed Development Monthly'))

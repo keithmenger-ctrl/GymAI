@@ -36,8 +36,24 @@ Migrations live in `supabase/migrations`:
 
 Seed data (`supabase/seed.sql`): "Sample Facility", 3 programs × 3 levels, 36 curriculum items, 3 coaches, 30 athletes, 26 guardians, ~140 sessions (8 weeks back through next week, pattern anchored to *today* so every coach has sessions on demo day), attendance, notes, ~400 assessment results, memberships and payments. Demo logins (password `academyos-demo`): `owner@`, `alex@`, `mike@`, `sarah@`, `parent1@`…`parent6@` `demo-academy.test`. The seed is optional and is not run by migrations; load it only into dev/demo databases.
 
+## Verify your changes
+From a clean clone (`npm ci` first), no prior build needed:
+
+```bash
+npm run lint
+npm run typecheck   # next typegen && tsc --noEmit
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder npm run build
+```
+
+Suites that need local services:
+
+| Command | Needs | Checks |
+| --- | --- | --- |
+| `npm run test:db` | local Postgres 16, `su postgres` | `supabase/tests/run.sh`: rebuilds `academyos_test`, runs the 49 tenant/role isolation checks in `rls.sql`; exits non-zero on any error or if the pass marker is missing |
+| `npm run test:e2e` | Postgres 16, GoTrue (via `scripts/dev-up.sh`), dev server on :3000 | `scripts/regress.sh`: every Playwright suite in `scripts/e2e/`, RLS, lint, typecheck |
+
 ## Testing the database locally
-Needs a local Postgres 16 (no Supabase required; an auth stub stands in for Supabase's `auth` schema):
+Needs a local Postgres 16 (no Supabase required; an auth stub stands in for Supabase's `auth` schema). `npm run test:db` does both steps:
 
 ```bash
 bash supabase/tests/reset.sh                       # rebuild db, run migrations + seed

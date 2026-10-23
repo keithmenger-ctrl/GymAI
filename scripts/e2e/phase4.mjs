@@ -4,7 +4,7 @@ const path = (p) => new URL(p.url()).pathname
 const name = `Wrestling ${Date.now().toString().slice(-5)}`
 const { browser, page, errors } = await launch()
 page.on('dialog', (d) => d.accept())
-await login(page, 'owner@vegaselite.test')
+await login(page, 'owner@demo-academy.test')
 
 await page.goto(`${BASE}/programs`)
 let txt = await page.innerText('main')
@@ -94,7 +94,7 @@ check('archived program hidden from athlete form', !(await page.locator('select[
 // coach blocked
 {
   const c = await launch({ width: 390, height: 844 })
-  await login(c.page, 'keith@vegaselite.test')
+  await login(c.page, 'alex@demo-academy.test')
   await c.page.goto(`${BASE}/programs`)
   check('coach cannot open programs', path(c.page) === '/coach/today', path(c.page))
   await c.browser.close()

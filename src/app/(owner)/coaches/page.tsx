@@ -1,4 +1,5 @@
 import { requireAdmin } from '@/lib/auth'
+import { flags } from '@/lib/flags'
 import { withUser } from '@/lib/db'
 import { createCoach, setCoachActive } from '@/lib/actions/coaches'
 import { setCoachFinance } from '@/lib/actions/team'
@@ -59,7 +60,7 @@ export default async function CoachesPage() {
                     <InviteButton id={c.id} hasLogin={c.has_login} kind="coach" />
                     <p className="mt-1 text-xs text-muted">{c.has_login ? 'Has app access' : 'No app access yet'}</p>
                   </div>
-                  {c.has_login && (
+                  {c.has_login && flags.billing() && (
                     <form action={setCoachFinance.bind(null, c.id, !c.can_finance)} className="mt-3">
                       <label className="flex items-center gap-2 text-sm">
                         <button role="switch" aria-checked={c.can_finance} aria-label={`${c.name} can see billing`}

@@ -8,7 +8,7 @@ const reportsBefore = (await db.query('select count(*)::int as n from progress_r
 
 const path = (p) => new URL(p.url()).pathname
 const { browser, page, errors } = await launch({ width: 1280, height: 900 })
-await login(page, 'owner@vegaselite.test')
+await login(page, 'owner@demo-academy.test')
 await page.click('a:has-text("Ask the assistant")')
 await page.waitForURL('**/assistant')
 check('template mode disclosed', (await page.innerText('main')).includes('AI drafting is off'))
@@ -56,7 +56,7 @@ await browser.close()
 // coach can't use it
 {
   const c = await launch({ width: 390, height: 844 })
-  await login(c.page, 'keith@vegaselite.test')
+  await login(c.page, 'alex@demo-academy.test')
   await c.page.goto(`${BASE}/assistant`)
   check('coach blocked from assistant', path(c.page) === '/coach/today')
   await c.browser.close()

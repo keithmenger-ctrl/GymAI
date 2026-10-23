@@ -7,10 +7,12 @@ import { requireAdmin } from '@/lib/auth'
 import { withUser } from '@/lib/db'
 import { QUERIES, route, runQuery, type AssistantResult, type QueryId } from '@/lib/ai/queries'
 import { buildSnapshot } from '@/lib/queries/reports'
+import { requireFlag } from '@/lib/flags'
 
 export type AskState = { question?: string; result?: AssistantResult } | undefined
 
 export async function ask(_: AskState, fd: FormData): Promise<AskState> {
+  requireFlag('assistant')
   const s = await requireAdmin()
   const question = String(fd.get('question') ?? '').trim().slice(0, 300)
   const preset = String(fd.get('query') ?? '') as QueryId
@@ -35,6 +37,7 @@ const saveSchema = z.object({ athlete_id: z.uuid(), summary: z.string().trim().m
 
 /** The explicit, human-confirmed step: saves the (edited) draft as a *draft* report. Nothing is shared. */
 export async function saveDraftReport(fd: FormData) {
+  requireFlag('assistant')
   const s = await requireAdmin()
   const p = saveSchema.safeParse(Object.fromEntries(fd))
   if (!p.success) return

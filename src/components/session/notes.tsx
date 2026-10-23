@@ -16,7 +16,7 @@ export function SessionNotes({ sessionId, notes, tz }: { sessionId: string; note
             <li key={n.id} className="text-sm">
               <p className="text-xs text-muted">
                 {n.athlete_name ?? 'Session'} · {n.author ?? 'Staff'} · {fmtTime(n.created_at, tz)}
-                {n.shareable && <Badge tone="volt" className="ml-2">Shared with parent</Badge>}
+                {n.shareable && <Badge tone="accent" className="ml-2">Shared with parent</Badge>}
               </p>
               <p className="mt-0.5">{n.body}</p>
             </li>

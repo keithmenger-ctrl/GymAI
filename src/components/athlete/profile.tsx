@@ -11,6 +11,7 @@ import { listReports } from '@/lib/queries/reports'
 import { GenerateReportButton } from '@/components/report/generate-button'
 import { fmtDate, fmtShortDate, initials, money, num, relativeDays } from '@/lib/format'
 import type { Session } from '@/lib/auth'
+import { flags } from '@/lib/flags'
 import {
   assessmentSeries, athleteNotes, athleteTimeline, attendanceSummary, currentFocus, getAthlete,
   improvement, recentAttendance,
@@ -51,7 +52,7 @@ export async function AthleteProfile({
     listReports(session, id),
   ])
   // Membership: owners/admins, and coaches explicitly allowed to see billing. RLS returns nothing to anyone else.
-  const showMembership = viewer === 'admin' || (viewer === 'coach' && session.canViewFinance)
+  const showMembership = flags.billing() && (viewer === 'admin' || (viewer === 'coach' && session.canViewFinance))
   const memberships = showMembership
     ? await withUser(session.userId, (q) =>
         q<{ id: string; plan: string; price_cents: number; interval: string; status: string; next_billing_date: string | null }>(
@@ -124,7 +125,7 @@ export async function AthleteProfile({
         <Card className="p-5">
           <p className="text-xs font-medium uppercase tracking-wide text-muted">Current focus</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {focus.length ? focus.map((f) => <Badge key={f} tone="volt">{f}</Badge>) : <span className="text-sm text-muted">Nothing scheduled</span>}
+            {focus.length ? focus.map((f) => <Badge key={f} tone="accent">{f}</Badge>) : <span className="text-sm text-muted">Nothing scheduled</span>}
           </div>
         </Card>
       </div>
@@ -153,7 +154,7 @@ export async function AthleteProfile({
             {viewer !== 'parent' && (
               <ActionForm action={addMilestone.bind(null, a.id)} submit="Add milestone" variant="secondary" size="sm"
                 className="mb-6 flex flex-wrap items-start gap-2 space-y-0" resetOnSuccess>
-                <Input name="title" placeholder="e.g. First sub-1.8s 10-yard sprint" className="max-w-sm flex-1" aria-label="Milestone" required />
+                <Input name="title" placeholder="e.g. Reached a personal best" className="max-w-sm flex-1" aria-label="Milestone" required />
               </ActionForm>
             )}
             {timeline.length === 0 ? (
@@ -293,7 +294,7 @@ export async function AthleteProfile({
                     <p>{n.body}</p>
                     <p className="mt-1 flex items-center gap-2 text-xs text-muted">
                       {fmtShortDate(n.created_at, tz)}{n.author ? ` · ${n.author}` : ''}
-                      {viewer !== 'parent' && n.shareable && <Badge tone="volt">Shared with parent</Badge>}
+                      {viewer !== 'parent' && n.shareable && <Badge tone="accent">Shared with parent</Badge>}
                     </p>
                   </li>
                 ))}

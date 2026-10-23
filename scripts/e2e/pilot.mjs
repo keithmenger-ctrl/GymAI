@@ -8,7 +8,7 @@ const since = new Date()
 const count = async (sql, p = []) => (await db.query(sql, p)).rows[0].n
 
 const { browser, page, errors } = await launch({ width: 390, height: 844 })
-await login(page, 'keith@vegaselite.test')
+await login(page, 'alex@demo-academy.test')
 check('login event recorded with role', (await count(`select count(*)::int n from usage_events where name='login' and role='coach' and created_at >= $1`, [since])) >= 1)
 
 // feedback from the coach session page

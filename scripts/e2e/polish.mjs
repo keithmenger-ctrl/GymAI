@@ -2,7 +2,7 @@
 import { launch, login, check, done, BASE } from './lib.mjs'
 
 const { browser, page } = await launch()
-await login(page, 'owner@vegaselite.test')
+await login(page, 'owner@demo-academy.test')
 // With loading skeletons the response streams (status already 200), so assert on what the user sees.
 await page.goto(`${BASE}/athletes/00000000-0000-0000-0000-000000000000`)
 await page.waitForSelector("text=We couldn't find that")
@@ -20,9 +20,9 @@ check('sparklines on profile, one per multi-result metric', (await sparks.count(
 check('sparkline has an accessible summary', /sec on /.test(await sparks.first().getAttribute('aria-label')))
 await browser.close()
 
-// Ethan Brooks is seeded as overdue and is on Coach Keith's Speed Level 1 roster today.
+// Ethan Brooks is seeded as overdue and is on Coach Alex's Speed Level 1 roster today.
 const c = await launch({ width: 390, height: 844 })
-await login(c.page, 'keith@vegaselite.test')
+await login(c.page, 'alex@demo-academy.test')
 await c.page.locator('main a:has-text("Level 1 ·")').first().click()
 await c.page.waitForURL(/coach\/sessions/)
 await c.page.waitForSelector('[role=group][aria-label="Attendance for Ethan Brooks"]')

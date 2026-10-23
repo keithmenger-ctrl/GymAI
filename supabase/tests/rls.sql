@@ -24,7 +24,7 @@ declare
   a_org uuid; b_org uuid; a_prog uuid; n bigint;
   s_id uuid; ath_id uuid; parent_ath uuid; other_ath uuid; b_prog uuid; a_level uuid; total_sessions bigint;
 begin
-  select id into a_org from organizations where name = 'Vegas Elite Performance';
+  select id into a_org from organizations where name = 'Sample Facility';
   select count(*) into total_sessions from sessions;
   select id into a_prog from programs where organization_id = a_org order by name limit 1;
   select id into a_level from program_levels where program_id = a_prog limit 1;
@@ -69,7 +69,7 @@ begin
   end;
 
   -- ================= owner A
-  perform t.act_as('owner@vegaselite.test');
+  perform t.act_as('owner@demo-academy.test');
   perform t.check('owner A sees 30 athletes', (select count(*) from athletes) = 30);
   perform t.check('owner A sees none of B''s data', (select count(*) from athletes where first_name = 'Bee') = 0);
   perform t.check('owner A sees 30 memberships', (select count(*) from memberships) = 30);
@@ -77,7 +77,7 @@ begin
   perform t.check('owner A sees org A only', (select count(*) from organizations) = 1);
 
   -- ================= coach
-  perform t.act_as('keith@vegaselite.test');
+  perform t.act_as('alex@demo-academy.test');
   perform t.check('coach sees athletes', (select count(*) from athletes) = 30);
   perform t.check('coach sees sessions', (select count(*) from sessions) > 0);
   perform t.check('coach cannot see memberships', (select count(*) from memberships) = 0);
@@ -133,7 +133,7 @@ begin
   perform t.check('coach can edit own sessions', n > 0);
 
   -- ================= parent 1 (guardian of Alvarez athlete only)
-  perform t.act_as('parent1@vegaselite.test');
+  perform t.act_as('parent1@demo-academy.test');
   select a.id into parent_ath from athletes a;
   perform t.check('parent sees exactly their own athlete', (select count(*) from athletes) = 1);
   perform t.check('parent sees only own athlete sessions',
@@ -168,17 +168,17 @@ begin
   end;
 
   -- reports: draft hidden, shared visible
-  perform t.act_as('owner@vegaselite.test');
+  perform t.act_as('owner@demo-academy.test');
   insert into progress_reports (organization_id, athlete_id, title, sections, status)
     values (a_org, parent_ath, 'Draft', '{}', 'draft'), (a_org, parent_ath, 'Shared', '{}', 'shared');
-  perform t.act_as('parent1@vegaselite.test');
+  perform t.act_as('parent1@demo-academy.test');
   perform t.check('parent sees shared report only',
     (select count(*) from progress_reports) = 1 and (select count(*) from progress_reports where status = 'draft') = 0);
 
   -- ================= coach granted billing access
   reset role;
-  update user_roles set can_view_finance = true where user_id = (select id from auth.users where email = 'mike@vegaselite.test');
-  perform t.act_as('mike@vegaselite.test');
+  update user_roles set can_view_finance = true where user_id = (select id from auth.users where email = 'mike@demo-academy.test');
+  perform t.act_as('mike@demo-academy.test');
   perform t.check('coach with billing access reads memberships', (select count(*) from memberships) = 30);
   begin
     insert into membership_plans (organization_id, name, price_cents) values (a_org, 'Sneaky', 0);
@@ -187,10 +187,10 @@ begin
     perform t.check('coach with billing access cannot create plans', true);
   end;
   reset role;
-  update user_roles set can_view_finance = false where user_id = (select id from auth.users where email = 'mike@vegaselite.test');
+  update user_roles set can_view_finance = false where user_id = (select id from auth.users where email = 'mike@demo-academy.test');
 
   -- ================= security hardening (0010)
-  perform t.act_as('owner@vegaselite.test');
+  perform t.act_as('owner@demo-academy.test');
   begin
     update organizations set is_demo = not is_demo where id = a_org;
     perform t.check('owner cannot flip is_demo', false);
@@ -201,7 +201,7 @@ begin
   perform t.check('owner can still update org name', true);
   perform t.check('staff read internal athlete notes via function',
     (select athlete_internal_notes(id) from athletes where first_name = 'Johnny') is not null);
-  perform t.act_as('parent1@vegaselite.test');
+  perform t.act_as('parent1@demo-academy.test');
   begin
     perform notes from athletes limit 1;
     perform t.check('parent cannot select athletes.notes', false);
@@ -219,7 +219,7 @@ begin
   perform t.check('parent still reads own athlete row', (select count(*) from athletes) = 1);
 
   -- ================= pilot tables: write-only, own org + self only
-  perform t.act_as('keith@vegaselite.test');
+  perform t.act_as('alex@demo-academy.test');
   insert into usage_events (organization_id, user_id, role, name) values (a_org, auth.uid(), 'coach', 'login');
   insert into feedback (organization_id, user_id, role, body) values (a_org, auth.uid(), 'coach', 'love it');
   perform t.check('staff can write own usage event + feedback', true);
@@ -232,7 +232,7 @@ begin
     perform t.check('cannot log events into another org', true);
   end;
   begin
-    insert into feedback (organization_id, user_id, body) values (a_org, (select id from auth.users where email = 'owner@vegaselite.test'), 'spoof');
+    insert into feedback (organization_id, user_id, body) values (a_org, (select id from auth.users where email = 'owner@demo-academy.test'), 'spoof');
     perform t.check('cannot submit feedback as someone else', false);
   exception when insufficient_privilege then
     perform t.check('cannot submit feedback as someone else', true);

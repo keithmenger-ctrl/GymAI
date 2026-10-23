@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { requireFlag } from '@/lib/flags'
 import { requireRole } from '@/lib/auth'
 import { billingMode } from '@/lib/billing/stripe'
 import { athletesForMembership, listMemberships, listPlans } from '@/lib/queries/billing'
@@ -12,7 +13,7 @@ import { cn } from '@/lib/cn'
 
 export const metadata = { title: 'Billing' }
 
-const STATUS_TONE = { active: 'ok', trialing: 'volt', past_due: 'bad', incomplete: 'warn', canceled: 'neutral' } as const
+const STATUS_TONE = { active: 'ok', trialing: 'accent', past_due: 'bad', incomplete: 'warn', canceled: 'neutral' } as const
 const STATUS_LABEL = { active: 'Active', trialing: 'Trialing', past_due: 'Past due', incomplete: 'Awaiting payment', canceled: 'Canceled' }
 const FILTERS = [['', 'All'], ['past_due', 'Past due'], ['active', 'Active'], ['incomplete', 'Awaiting payment'], ['canceled', 'Canceled']] as const
 
@@ -32,6 +33,7 @@ function PlanFields({ p }: { p?: { name: string; price_cents: number; interval: 
 }
 
 export default async function BillingPage({ searchParams }: PageProps<'/billing'>) {
+  requireFlag('billing')
   // Billing settings are owner/admin only (coaches never reach the owner shell).
   const s = await requireRole('owner', 'admin')
   const sp = await searchParams

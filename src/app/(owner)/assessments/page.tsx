@@ -93,7 +93,7 @@ export default async function AssessmentsPage() {
       <h2 className="mb-3 mt-10 font-semibold">Metrics</h2>
       <div className="grid gap-6 lg:grid-cols-[1fr_22rem]">
         {types.length === 0 ? (
-          <EmptyState title="No metrics yet" body="Add the tests you run, like 10-yard sprint or vertical jump." />
+          <EmptyState title="No metrics yet" body="Add the tests you run so results can be tracked over time." />
         ) : (
           <Card className="divide-y divide-line">
             {types.map((t) => (

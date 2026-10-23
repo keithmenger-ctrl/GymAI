@@ -5,7 +5,7 @@ import fs from 'node:fs'
 const stamp = Date.now().toString().slice(-5)
 const csv = [
   'First Name,Last Name,DOB,Program,Level,Parent Name,Parent Email,Parent Phone,Status,Favorite Color',
-  `Ava${stamp},"O'Neil, Jr",4/18/2012,Youth Speed Development,2,Sam O'Neil,sam${stamp}@example.com,702-555-0101,active,blue`,
+  `Ava${stamp},"O'Neil, Jr",4/18/2012,Youth Speed Development,2,Sam O'Neil,sam${stamp}@example.com,555-0101,active,blue`,
   `Ben${stamp},Cruz,2010-09-02,Baseball Performance,Level 1,"Cruz, Maria",maria${stamp}@example.com,,trial,red`,
   `Cal${stamp},Diaz,13/40/2011,,,,,,,green`,
   `Dee${stamp},Ek,2012-01-01,Underwater Hockey,,,,,,`,
@@ -16,7 +16,7 @@ const file = `/tmp/import-${stamp}.csv`
 fs.writeFileSync(file, csv)
 
 const { browser, page, errors } = await launch({ width: 1280, height: 900 })
-await login(page, 'owner@vegaselite.test')
+await login(page, 'owner@demo-academy.test')
 await page.goto(`${BASE}/athletes`)
 const before = await page.locator('tbody tr').count()
 await page.click('a:text("Import CSV")')
@@ -54,7 +54,7 @@ await page.click('tbody tr a')
 await page.waitForURL(/athletes\//)
 const p = await page.innerText('main')
 check('imported athlete: program, level, trial/active, parent linked', p.includes('Youth Speed Development') && p.includes('Level 2') && p.includes("Sam O'Neil") && p.includes(`sam${stamp}@example.com`))
-check('imported athlete: joined milestone', p.includes('Joined Vegas Elite Performance'))
+check('imported athlete: joined milestone', p.includes('Joined Sample Facility'))
 
 // re-import is idempotent (duplicates skipped)
 await page.goto(`${BASE}/athletes/import`)
@@ -68,7 +68,7 @@ await browser.close()
 // coach cannot import
 {
   const c = await launch()
-  await login(c.page, 'keith@vegaselite.test')
+  await login(c.page, 'alex@demo-academy.test')
   await c.page.goto(`${BASE}/athletes/import`)
   check('coach blocked from import', new URL(c.page.url()).pathname === '/coach/today')
   const r = await c.page.goto(`${BASE}/athletes/import/template`)

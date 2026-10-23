@@ -6,6 +6,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import { passwordLink } from '@/lib/links'
 import { emailHtml, orgMayEmail, sendMail } from '@/lib/mail'
 import { track } from '@/lib/track'
+import { APP_NAME } from '@/lib/app-config'
 
 export type InviteResult = { link?: string; error?: string; emailedTo?: string; emailError?: string }
 
@@ -33,7 +34,7 @@ async function invite(table: 'guardians' | 'coaches', role: 'parent' | 'coach', 
         user_metadata: { full_name: person.name },
       })
       if (error || !data.user) {
-        return { error: /already|registered|exists/i.test(error?.message ?? '') ? 'That email already has an AcademyOS account.' : (error?.message ?? 'Could not create the login.') }
+        return { error: /already|registered|exists/i.test(error?.message ?? '') ? `That email already has an account.` : (error?.message ?? 'Could not create the login.') }
       }
       const uid = data.user.id
       await withServiceRole(async (q) => {
@@ -50,9 +51,9 @@ async function invite(table: 'guardians' | 'coaches', role: 'parent' | 'coach', 
       try {
         const [org] = await withUser(s.userId, (q) => q<{ name: string }>('select name from organizations where id = $1', [s.orgId]))
         const who = role === 'coach' ? 'the coach app' : 'the parent portal'
-        await sendMail(person.email, `You're invited to ${org.name} on AcademyOS`,
+        await sendMail(person.email, `You're invited to ${org.name} on ${APP_NAME}`,
           `${org.name} invited you to ${who}. Set your password here (the link works once): ${url}`,
-          emailHtml(`You're invited to ${org.name}`, `${org.name} invited you to ${who} on AcademyOS. Set a password to get started.`, 'Set your password', url))
+          emailHtml(`You're invited to ${org.name}`, `${org.name} invited you to ${who} on ${APP_NAME}. Set a password to get started.`, 'Set your password', url))
         result.emailedTo = person.email
         await track(s, 'email_sent', { kind: `invite_${role}` })
       } catch (e) {

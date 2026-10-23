@@ -4,10 +4,12 @@ import { z } from 'zod'
 import { getSession } from '@/lib/auth'
 import { withUser } from '@/lib/db'
 import type { FormState } from './auth'
+import { requireFlag } from '@/lib/flags'
 
 const schema = z.object({ body: z.string().trim().min(1, 'Write a few words first').max(4000), page: z.string().max(300).default('') })
 
 export async function submitFeedback(_: FormState, fd: FormData): Promise<FormState> {
+  requireFlag('pilotFeedback')
   const s = await getSession()
   if (!s) return { error: 'Please sign in again.' }
   const p = schema.safeParse(Object.fromEntries(fd))

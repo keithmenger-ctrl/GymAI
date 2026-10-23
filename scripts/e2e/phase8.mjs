@@ -7,7 +7,7 @@ let johnnyUrl, otherAthleteUrl
 // ---------------- owner: milestone + advance level
 {
   const { browser, page, errors } = await launch()
-  await login(page, 'owner@vegaselite.test')
+  await login(page, 'owner@demo-academy.test')
   await page.goto(`${BASE}/athletes?q=Johnny`)
   await page.click('tbody tr a')
   await page.waitForURL(/\/athletes\/[0-9a-f-]{36}$/)
@@ -44,7 +44,7 @@ let johnnyUrl, otherAthleteUrl
 // ---------------- coach can add milestone, cannot advance level
 {
   const { browser, page } = await launch({ width: 390, height: 844 })
-  await login(page, 'keith@vegaselite.test')
+  await login(page, 'alex@demo-academy.test')
   await page.goto(johnnyUrl.replace('/athletes/', '/coach/athletes/'))
   check('coach: no advance button', (await page.locator('button:has-text("Advance to")').count()) === 0)
   check('coach: can add milestone', (await page.locator('button:text("Add milestone")').count()) === 1)
@@ -54,7 +54,7 @@ let johnnyUrl, otherAthleteUrl
 // ---------------- parent portal (parent1 = Johnny's guardian)
 {
   const { browser, page, errors } = await launch({ width: 390, height: 844 })
-  await login(page, 'parent1@vegaselite.test')
+  await login(page, 'parent1@demo-academy.test')
   let txt = await page.innerText('main')
   check('home: athlete card', txt.includes('Johnny Alvarez') && txt.includes('Youth Speed Development'))
   check('home: next session + attendance', /NEXT SESSION|Next session/i.test(txt) && /\d+ \/ \d+/.test(txt))

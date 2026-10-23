@@ -6,7 +6,8 @@ const email = `prospect${Date.now()}@example.com`
 const { browser, page, errors } = await launch({ width: 1280, height: 900 })
 
 await page.goto(`${BASE}/signup`)
-check('demo data checkbox on by default', await page.isChecked('input[name=demo]'))
+check('demo data checkbox is opt-in (off by default)', !(await page.isChecked('input[name=demo]')))
+await page.check('input[name=demo]')
 await page.fill('input[name=orgName]', 'Summit Speed Lab')
 await page.fill('input[name=fullName]', 'Pat Prospect')
 await page.fill('input[name=email]', email)
@@ -25,7 +26,7 @@ check('timeline milestone uses this org name', (await page.innerText('main')).in
 // switch to coach
 await Promise.all([page.waitForURL('**/coach/today'), page.click('button:text-is("Coach")')])
 t = await page.innerText('body')
-check('coach view: own sessions today', t.includes('Coach Keith') && t.includes('Youth Speed Development'))
+check('coach view: own sessions today', t.includes('Coach Alex') && t.includes('Youth Speed Development'))
 await page.goto(`${BASE}/dashboard`)
 check('as coach, owner area is blocked (real role)', path(page) === '/coach/today')
 // switch to parent

@@ -5,9 +5,11 @@ import { supabaseServer } from '@/lib/supabase/server'
 import { withUser } from '@/lib/db'
 import { getSession, homeFor } from '@/lib/auth'
 import { provisionDemo } from '@/lib/demo'
+import { flags } from '@/lib/flags'
 import { passwordLink } from '@/lib/links'
 import { emailHtml, mailEnabled, sendMail } from '@/lib/mail'
 import { track } from '@/lib/track'
+import { APP_NAME } from '@/lib/app-config'
 
 export type FormState = { error?: string; message?: string } | undefined
 
@@ -40,7 +42,7 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
   }
   const [org] = await withUser(data.user.id, (q) =>
     q<{ id: string }>('select create_organization($1, $2) as id', [orgName, fullName]))
-  if (fd.get('demo') === 'on') {
+  if (flags.demo() && fd.get('demo') === 'on') {
     try {
       await provisionDemo(org.id)
       const s = await getSession()
@@ -93,17 +95,17 @@ const lastReset = new Map<string, number>()
  */
 export async function forgotPassword(_: FormState, fd: FormData): Promise<FormState> {
   const email = str(fd, 'email').toLowerCase()
-  const generic = { message: 'If that email has an AcademyOS account, a sign-in link is on its way. Check your inbox.' }
+  const generic = { message: `If that email has an account, a sign-in link is on its way. Check your inbox.` }
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { error: 'Enter a valid email address.' }
   if (!mailEnabled()) {
-    return { error: 'Email is not set up for this AcademyOS yet. Ask your academy for a new sign-in link.' }
+    return { error: `Email is not set up yet. Ask your academy for a new sign-in link.` }
   }
   const now = Date.now()
   if (now - (lastReset.get(email) ?? 0) < 60_000) return generic
   lastReset.set(email, now)
   try {
     const url = await passwordLink(email, true)
-    await sendMail(email, 'Reset your AcademyOS password',
+    await sendMail(email, `Reset your ${APP_NAME} password`,
       `Use this link to sign in and choose a new password (it works once): ${url}`,
       emailHtml('Reset your password', 'Use the button below to sign in and choose a new password.', 'Choose a new password', url))
   } catch (e) {

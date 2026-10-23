@@ -1,4 +1,4 @@
-# AcademyOS
+# Academy shell
 
 An operating system for independent sports-performance facilities, built around athlete development rather than just memberships and booking.
 
@@ -34,14 +34,30 @@ Single Next.js (App Router, TypeScript, Tailwind) monolith on Supabase (Postgres
 Migrations live in `supabase/migrations`:
 `organizations, profiles, user_roles, locations, sports, coaches, guardians, athletes, athlete_guardians, programs, program_levels, curriculum_items, sessions, session_athletes, attendance, coach_notes, assessment_types, assessment_results, athlete_progress_events, membership_plans, memberships, payments, progress_reports`.
 
-Seed data (`supabase/seed.sql`): "Vegas Elite Performance", 3 programs × 3 levels, 36 curriculum items, 3 coaches, 30 athletes, 26 guardians, ~140 sessions (8 weeks back through next week, pattern anchored to *today* so every coach has sessions on demo day), attendance, notes, ~400 assessment results, memberships and payments. Demo logins (password `academyos-demo`): `owner@`, `keith@`, `mike@`, `sarah@`, `parent1@`…`parent6@` `vegaselite.test`.
+Seed data (`supabase/seed.sql`): "Sample Facility", 3 programs × 3 levels, 36 curriculum items, 3 coaches, 30 athletes, 26 guardians, ~140 sessions (8 weeks back through next week, pattern anchored to *today* so every coach has sessions on demo day), attendance, notes, ~400 assessment results, memberships and payments. Demo logins (password `academyos-demo`): `owner@`, `alex@`, `mike@`, `sarah@`, `parent1@`…`parent6@` `demo-academy.test`. The seed is optional and is not run by migrations; load it only into dev/demo databases.
+
+## Verify your changes
+From a clean clone (`npm ci` first), no prior build needed:
+
+```bash
+npm run lint
+npm run typecheck   # next typegen && tsc --noEmit
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder npm run build
+```
+
+Suites that need local services:
+
+| Command | Needs | Checks |
+| --- | --- | --- |
+| `npm run test:db` | local Postgres 16, `su postgres` | `supabase/tests/run.sh`: rebuilds `academyos_test`, runs the 59 tenant/role isolation checks in `rls.sql`; exits non-zero on any error or if the pass marker is missing |
+| `npm run test:e2e` | Postgres 16, GoTrue (via `scripts/dev-up.sh`), dev server on :3000 | `scripts/regress.sh`: every Playwright suite in `scripts/e2e/`, RLS, lint, typecheck |
 
 ## Testing the database locally
-Needs a local Postgres 16 (no Supabase required; an auth stub stands in for Supabase's `auth` schema):
+Needs a local Postgres 16 (no Supabase required; an auth stub stands in for Supabase's `auth` schema). `npm run test:db` does both steps:
 
 ```bash
 bash supabase/tests/reset.sh                       # rebuild db, run migrations + seed
-su postgres -c "psql -q academyos_test -f supabase/tests/rls.sql"   # 49 tenant/role isolation checks
+su postgres -c "psql -q academyos_test -f supabase/tests/rls.sql"   # 59 tenant/role isolation checks
 ```
 
 ## Development plan
@@ -76,7 +92,7 @@ Anything not checked above is **not implemented**. Known limits: no native apps,
 Invites (parents, coaches, admins) and "Forgot password?" send one-time sign-in links when `SMTP_URL`, `MAIL_FROM` and `APP_URL` are set (any SMTP provider). The same link is always shown to the owner as a fallback. Locally, `scripts/dev-up.sh` starts an SMTP sink that stores mail in `/tmp/academyos-mail`.
 
 ## Importing athletes
-Athletes → **Import CSV** (owners/admins). Download the template or use any export with recognizable headers (e.g. "First Name", "DOB", "Parent Email"; unknown columns are ignored and listed). Dates can be `YYYY-MM-DD` or `M/D/YYYY`. Every row is validated in a preview (bad dates, unknown program/level, invalid emails, duplicates) before anything is saved. The import then re-parses the file server-side, imports only valid rows in one transaction, reuses parents by email, creates unknown sports, and skips athletes already in AcademyOS (same name, and matching or missing birthdate), so re-importing a file is safe.
+Athletes → **Import CSV** (owners/admins). Download the template or use any export with recognizable headers (e.g. "First Name", "DOB", "Parent Email"; unknown columns are ignored and listed). Dates can be `YYYY-MM-DD` or `M/D/YYYY`. Every row is validated in a preview (bad dates, unknown program/level, invalid emails, duplicates) before anything is saved. The import then re-parses the file server-side, imports only valid rows in one transaction, reuses parents by email, creates unknown sports, and skips athletes already in the system (same name, and matching or missing birthdate), so re-importing a file is safe.
 
 ## Pilot feedback and usage
 - Every shell has a **Send feedback** button (stored in `feedback` with page + role).
@@ -85,9 +101,9 @@ Athletes → **Import CSV** (owners/admins). Download the template or use any ex
 - Not implemented: emailing feedback to the founder (needs a mail provider).
 
 ## Demo academies
-- Signup has **Start with demo data** (on by default). It creates the prospect's own organization, then fills it with `seed_demo_org()` (migration 0007): 30 athletes, 3 coaches, 6 parents, curriculum, ~8 weeks of history anchored to *today*. Each prospect gets an isolated copy.
+- Signup has **Start with demo data** (unchecked by default; only shown when `FEATURE_DEMO=true`). It creates the prospect's own organization, then fills it with `seed_demo_org()` (migrations 0007 and 0011): 30 athletes, 3 coaches, 6 parents, curriculum, ~8 weeks of history anchored to *today*. Each prospect gets an isolated copy.
 - Demo orgs (`organizations.is_demo`) show a **Demo academy · view as Owner / Coach / Parent** bar. Switching signs in as that org's demo user through a one-time link, so every view is the real one (same routes, same RLS). Non-demo orgs never see the bar, and the switch action refuses them.
-- Demo coach/parent logins get random passwords and `@academyos.demo` addresses; they are only reachable through the switcher. `supabase/seed.sql` creates the shared "Vegas Elite Performance" demo org the same way (with the fixed `@vegaselite.test` logins).
+- Demo coach/parent logins get random passwords and `@academyos.demo` addresses; they are only reachable through the switcher. `supabase/seed.sql` creates the shared "Sample Facility" demo org the same way (with the fixed `@demo-academy.test` logins).
 
 ## Billing
 - **Dev mode** (no `STRIPE_SECRET_KEY`): memberships/payments are database rows; the Billing page shows a "Dev mode" banner and "Sim. paid / Sim. failed" buttons to demo past-due flows. Parents see status and payment history but no pay button.
@@ -105,3 +121,5 @@ See [docs/DEPLOY.md](docs/DEPLOY.md) (Supabase + Vercel + Stripe checklist).
 Against a real Supabase project: copy `.env.example` to `.env.local`, fill it in, run the SQL in `supabase/migrations` then `supabase/seed.sql` (SQL editor or `supabase db push`), `npm install && npm run dev`.
 
 Without Docker/Supabase (what this repo's CI-less dev loop uses): `bash scripts/dev-up.sh` starts Postgres + a locally built GoTrue with the migrations and seed loaded. Then create `.env.local` with the values from `scripts/dev-keys.mjs` (see `.env.example`; `DEV_GOTRUE_URL` proxies `/auth/v1` to it) and `npm run dev`. Browser checks (dev server running): `node scripts/e2e/phase2.mjs`, `node scripts/e2e/phase3.mjs`, `node scripts/e2e/phase4.mjs`, `node scripts/e2e/phase5.mjs`, `node scripts/e2e/phase7.mjs`, `node scripts/e2e/phase8.mjs`, `node scripts/e2e/phase9.mjs`, `node scripts/e2e/phase10.mjs`, `node scripts/e2e/phase11.mjs`, `node scripts/e2e/phase12.mjs`, `node scripts/e2e/demo.mjs`, `node scripts/e2e/import.mjs`, `node scripts/e2e/pilot.mjs`, `node scripts/e2e/rosters.mjs`, `node scripts/e2e/email.mjs`. Or everything at once: `bash scripts/regress.sh`.
+
+Billing, the assistant, pilot feedback/usage tracking and demo data are optional features, off unless `FEATURE_BILLING`, `FEATURE_ASSISTANT`, `FEATURE_PILOT_FEEDBACK` or `FEATURE_DEMO` is `true` (see `.env.example`). The browser suites exercise those features, so start the dev server with all four set to `true` before running them.

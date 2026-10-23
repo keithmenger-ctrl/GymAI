@@ -1,9 +1,9 @@
 'use client'
 
 const DEMO = [
-  { label: 'Owner', email: 'owner@vegaselite.test' },
-  { label: 'Coach', email: 'keith@vegaselite.test' },
-  { label: 'Parent', email: 'parent1@vegaselite.test' },
+  { label: 'Owner', email: 'owner@demo-academy.test' },
+  { label: 'Coach', email: 'alex@demo-academy.test' },
+  { label: 'Parent', email: 'parent1@demo-academy.test' },
 ]
 
 /** Fills the sign-in form with seeded demo credentials. Only rendered when NEXT_PUBLIC_DEMO_LOGINS=true. */

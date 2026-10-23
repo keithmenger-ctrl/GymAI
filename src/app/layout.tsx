@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from 'next'
+import { APP_NAME } from '@/lib/app-config'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: { default: 'AcademyOS', template: '%s · AcademyOS' },
-  description: 'The operating system for independent sports-performance facilities.',
+  title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
 }
 
 export const viewport: Viewport = { width: 'device-width', initialScale: 1 }

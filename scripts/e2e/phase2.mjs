@@ -8,7 +8,7 @@ const path = (page) => new URL(page.url()).pathname
   await page.goto(`${BASE}/dashboard`)
   check('signed-out /dashboard -> /login', path(page) === '/login', path(page))
   await page.goto(`${BASE}/login`)
-  await page.fill('input[name=email]', 'owner@vegaselite.test')
+  await page.fill('input[name=email]', 'owner@demo-academy.test')
   await page.fill('input[name=password]', 'wrong-password')
   await page.click('button[type=submit]')
   await page.waitForSelector('form [role=alert]')
@@ -19,10 +19,10 @@ const path = (page) => new URL(page.url()).pathname
 // owner
 {
   const { browser, page, errors } = await launch()
-  await login(page, 'owner@vegaselite.test')
+  await login(page, 'owner@demo-academy.test')
   check('owner lands on /dashboard', path(page) === '/dashboard', path(page))
   check('owner sidebar has 9 nav items', (await page.locator('aside nav a').count()) === 9)
-  check('org name shown', (await page.textContent('aside')).includes('Vegas Elite Performance'))
+  check('org name shown', (await page.textContent('aside')).includes('Sample Facility'))
   await page.goto(`${BASE}/coach/today`)
   check('owner may open coach view', path(page) === '/coach/today', path(page))
   await page.goto(`${BASE}/parent`)
@@ -35,7 +35,7 @@ const path = (page) => new URL(page.url()).pathname
 // coach (phone)
 {
   const { browser, page } = await launch({ width: 390, height: 844 })
-  await login(page, 'keith@vegaselite.test')
+  await login(page, 'alex@demo-academy.test')
   check('coach lands on /coach/today', path(page) === '/coach/today', path(page))
   check('coach bottom tabs (3)', (await page.locator('nav[aria-label=Primary] a').count()) === 3)
   await page.goto(`${BASE}/dashboard`)
@@ -49,7 +49,7 @@ const path = (page) => new URL(page.url()).pathname
 // parent (phone)
 {
   const { browser, page } = await launch({ width: 390, height: 844 })
-  await login(page, 'parent1@vegaselite.test')
+  await login(page, 'parent1@demo-academy.test')
   check('parent lands on /parent', path(page) === '/parent', path(page))
   check('parent bottom tabs (4)', (await page.locator('nav[aria-label=Primary] a').count()) === 4)
   await page.goto(`${BASE}/coach/today`)
@@ -76,7 +76,7 @@ const path = (page) => new URL(page.url()).pathname
   await Promise.all([page.waitForURL('**/dashboard', { timeout: 20000 }), page.click('button[type=submit]')])
   check('signup lands on /dashboard', path(page) === '/dashboard', path(page))
   check('empty academy has no demo bar', !(await page.innerText('body')).includes('Demo academy'))
-  check('new org name shown, not the demo org', (await page.textContent('aside')).includes('ABC Baseball Academy') && !(await page.innerText('body')).includes('Vegas Elite'))
+  check('new org name shown, not the demo org', (await page.textContent('aside')).includes('ABC Baseball Academy') && !(await page.innerText('body')).includes('Sample Facility'))
   await browser.close()
 }
 done()

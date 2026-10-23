@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 
 // NOT a server action: this runs with the service role for an org id it is given, so it must only be
 // reachable from trusted server code (signup, right after create_organization made the caller the owner).
-const COACHES = ['keith', 'mike', 'sarah']
+const COACHES = ['alex', 'mike', 'sarah']
 
 /**
  * Fills a freshly created organization with demo data and demo coach/parent logins.

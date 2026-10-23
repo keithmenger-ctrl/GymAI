@@ -24,7 +24,7 @@ export async function Recorder({ session: s, basePath, params }: {
   const levelId = sessionId ? undefined : uuid(params.level)
   const types = await listAssessmentTypes(s)
   if (types.length === 0) {
-    return <EmptyState title="No assessment metrics yet" body="An owner or admin needs to add metrics (e.g. 10-yard sprint) first." />
+    return <EmptyState title="No assessment metrics yet" body="An owner or admin needs to add metrics first." />
   }
 
   // step 1: choose a group

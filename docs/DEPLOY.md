@@ -5,7 +5,7 @@ same thing on hosted Supabase and Vercel. Items marked **verify** could not be e
 
 ## 1. Supabase project
 1. Create a project (region close to your facilities). Save the database password.
-2. SQL editor: run `supabase/migrations/0001` … `0008` in order. Do **not** run `supabase/tests/*` stub files; Supabase
+2. SQL editor: run every file in `supabase/migrations` in order, `0001_schema.sql` through `0011_demo_org_neutral.sql`. Do **not** run `supabase/tests/*` stub files; Supabase
    already has the `auth` schema and the `anon` / `authenticated` roles.
 3. Do **not** run `supabase/seed.sql` on production: its logins use a publicly documented password. Use it only on a
    separate staging/demo project. Prospects don't need it: signup creates their own demo academy.
@@ -24,8 +24,19 @@ same thing on hosted Supabase and Vercel. Items marked **verify** could not be e
 | `SMTP_URL`, `MAIL_FROM` | optional; any SMTP provider, e.g. `smtps://resend:<API key>@smtp.resend.com:465` and `AcademyOS <noreply@yourdomain.com>`. Enables emailed invites + "Forgot password?" |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | optional; leave empty for dev-mode billing |
 | `ANTHROPIC_API_KEY` | optional; AI drafts fall back to templates |
+| `ANTHROPIC_MODEL` | optional; overrides the Claude model used for AI drafts (leave empty for the default) |
+| `NEXT_PUBLIC_APP_NAME` | optional; product name shown in the browser title, app shell and emails (defaults to `AcademyOS`) |
+| `FEATURE_BILLING` | optional; `true` turns on memberships, plans, Stripe and parent billing (off otherwise) |
+| `FEATURE_ASSISTANT` | optional; `true` turns on the AI assistant |
+| `FEATURE_PILOT_FEEDBACK` | optional; `true` turns on the feedback button and usage-event tracking |
+| `FEATURE_DEMO` | optional; `true` shows "Start with demo data" at signup and the demo view switcher |
 
-Do **not** set `DEV_GOTRUE_URL` or `NEXT_PUBLIC_DEMO_LOGINS` in production.
+Feature flags are off unless set to exactly `true`. `NEXT_PUBLIC_*` values are baked in at build time, so redeploy after
+changing them.
+
+Local/dev only, never set in production: `DEV_GOTRUE_URL` (proxies `/auth/v1` to a local GoTrue),
+`NEXT_PUBLIC_DEMO_LOGINS` (shows seeded demo credentials on the sign-in page) and `NEXT_DIST_DIR` (alternate build
+output folder for the local test scripts). `NODE_ENV` is set by Next.js/Vercel; don't set it yourself.
 
 Why the transaction pooler works: every data access runs in one transaction that sets the caller's JWT claims and
 `set local role authenticated` (`src/lib/db.ts`), and `pg` uses unnamed prepared statements. **Verify** with the smoke
